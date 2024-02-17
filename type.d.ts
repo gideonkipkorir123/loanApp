@@ -16,6 +16,8 @@ export interface UserInterface {
     createdAt?: Date;
     updatedAt?: Date;
     address?: Address[];
+    phoneVerified?: Boolean;
+    emailVerified?: Boolean;
     role?: string;
     resetPasswordToken?: string
 

@@ -7,9 +7,7 @@ exports.verifyJWT = exports.signJWT = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 // sign jwt
 function signJWT(payload, expiresIn) {
-    return jsonwebtoken_1.default.sign(payload, process.env.PRIVATE_KEY, {
-        expiresIn,
-    });
+    return jsonwebtoken_1.default.sign(payload, process.env.PRIVATE_KEY, { expiresIn });
 }
 exports.signJWT = signJWT;
 // verify tokens issued
@@ -19,7 +17,8 @@ function verifyJWT(token) {
         return { payload: decoded, expired: false };
     }
     catch (error) {
-        return { payload: null, expired: error.name === "TokenExpiredError" };
+        const jwtError = error;
+        return { payload: null, expired: jwtError.name === 'TokenExpiredError' };
     }
 }
 exports.verifyJWT = verifyJWT;

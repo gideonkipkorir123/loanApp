@@ -6,7 +6,10 @@ import User from "../models/user";
 import { createUserController } from "../controllers/user";
 import { createSession } from "../db";
 import { ROLES, authRole, requireUser } from "../middleware/requireUser";
-import { updateLoggedInUserPassword } from "../controllers/password";
+import { requestPasswordResetByEmail, requestPasswordResetViaOTP, resetUserPasswordByEmail, updateLoggedInUserPassword, verifyToken } from "../controllers/password";
+import { createOTPController, verifyOTPByPhoneNumberController } from "../controllers/OTP";
+
+
 
 const authRouter = express.Router();
 
@@ -78,7 +81,16 @@ authRouter.post("/logout", (req: Request, res: Response) => {
 });
 // update logged in user password
 authRouter.post("/updatePassword", requireUser, authRole(ROLES.user), updateLoggedInUserPassword)
+// when user clicks forgot email
+authRouter.post("/forgotPassword", requestPasswordResetByEmail)
+// reset updated email in database
+authRouter.post("/resetPassword", resetUserPasswordByEmail)
+// verify if tokens are valid
+authRouter.post("/verifyToken", verifyToken)
+// SEND OTP VIA PHONENUMBER
+authRouter.post("/phoneNumber", requestPasswordResetViaOTP)
+// AFRICA
 
-
-
+authRouter.post("/get-otp", requireUser, authRole(ROLES.user), createOTPController)
+authRouter.post("/verify-otp", requireUser, authRole(ROLES.user), verifyOTPByPhoneNumberController)
 export default authRouter;

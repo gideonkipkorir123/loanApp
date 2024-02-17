@@ -5,7 +5,6 @@ import express from "express";
 import deserializeUser from "./middleware/deserializeUser";
 import router from "./routers/index";
 dotenv.config();
-
 const port = process.env.ENV_VARIABLE;
 
 const app = express();
@@ -32,10 +31,10 @@ app.listen(port, () => {
 });
 module.exports = app;
 
-// const getUser = async()=>{
-//     const createdUser = await createUser({phoneNumber: '0715134415', fullName: "Dennis", password: "123456", email: "dennocapi@gmail.com"})
-//     const user = await getUserById("65c8bb07a613ffe08d373e4c")
-//     return user
+// const sendMail = async()=>{
+//     const email = await getUserByPhoneNumber(`+254710246806`)
+//     return email
 // }
 
-// getUser()
+// sendMail()
+

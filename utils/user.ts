@@ -16,9 +16,42 @@ export async function createUser(user: UserInterface) {
 export async function getUserById(userId: string): Promise<UserInterface | null> {
     try {
         const user = await User.findById(userId).lean() as UserInterface;
-        return user ; //error
+        return user; //error
     } catch (error: any) {
         throw new Error(`Error getting user by ID: ${error.message}`);
+    }
+}
+export async function getUserByEmail(email: string): Promise<UserInterface | null> {
+    try {
+        const user = await User.findOne({email}).lean() as UserInterface;
+        return user; 
+    } catch (error: any) {
+        throw new Error(`Error getting user by Email: ${error.message}`);
+    }
+}
+export async function getUserByPhoneNumber(phoneNumber: string): Promise<UserInterface | null> {
+    try {
+        const user = await User.findOne({ phoneNumber }).lean() as UserInterface;
+        return user; 
+    } catch (error: any) {
+        throw new Error(`Error getting user by phoneNumber: ${error.message}`);
+    }
+}
+export async function getUserByResetToken(resetPasswordToken: string): Promise<UserInterface | null> {
+    try {
+        const user = await User.findOne({ resetPasswordToken }).lean() as UserInterface;
+        return user; //error
+    } catch (error: any) {
+        throw new Error(`Error getting user by ID: ${error.message}`);
+    }
+}
+// get user via reset otp sent via sms
+export async function getUserByResetOTP(resetPasswordOTP: string): Promise<UserInterface | null> {
+    try {
+        const user = await User.findOne({ resetPasswordOTP }).lean() as UserInterface;
+        return user; //error
+    } catch (error: any) {
+        throw new Error(`Error getting user by resetPasswordOTP: ${error.message}`);
     }
 }
 
@@ -33,9 +66,9 @@ export async function getAllUsers(): Promise<UserInterface[]> {
 }
 
 // UPDATE (Update a user by ID)
-export async function updateUser(userId: string, updatedUser: UserInterface): Promise<UserInterface | null> {
+export async function updateUser(userId: string, userData: UserInterface): Promise<UserInterface | null> {
     try {
-        const user = await User.findByIdAndUpdate(userId, updatedUser, { new: true }).lean() as UserInterface;
+        const user = await User.findByIdAndUpdate(userId, userData, { new: true }).lean() as UserInterface;
         return user;
     } catch (error: any) {
         throw new Error(`Error updating user: ${error.message}`);

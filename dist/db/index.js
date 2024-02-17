@@ -25,6 +25,5 @@ exports.createSession = createSession;
 const generateUniqueSessionId = () => {
     const timestamp = Date.now().toString();
     const randomString = Math.random().toString(36).slice(2, 8);
-    // vs code says that substr is depreciated
     return `${timestamp}-${randomString}`;
 };

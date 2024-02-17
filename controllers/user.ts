@@ -16,7 +16,7 @@ export const createUserController = async (
     res: Response,
 ) => {
 
-    const { phoneNumber, fullName, address, email, password } = req.body;
+    const { phoneNumber, fullName, address, email, password ,role} = req.body;
 
     const { error, value } = userValidationSchema.validate(req.body);
     if (error) {
@@ -31,36 +31,10 @@ export const createUserController = async (
             fullName,
             address,
             email,
+            role,
             password: hashedPassword,
         });
-        const jwtTokenSecret = process.env.JWT_TOKEN_SECRET as string;
-
-        const accessToken = jwt.sign(
-            {
-                _id: user.id,
-                fullName: user.fullName,
-                email: user.email,
-                phoneNumber: user.phoneNumber,
-            },
-            jwtTokenSecret,
-            {
-                expiresIn: '30d'
-            }
-        );
-
-        const refreshToken = jwt.sign(
-            {
-                _id: user.id,
-                fullName: user.fullName,
-                email: user.email,
-                phoneNumber: user.phoneNumber,
-            },
-            jwtTokenSecret,
-            {
-                expiresIn: '30d',
-            }
-        );
-        return res.status(201).json({ user, accessToken, refreshToken });
+        return res.status(201).json({ message:"user created successfully" });
 
     } catch (error: any) {
         return res.status(500).json(error.message);

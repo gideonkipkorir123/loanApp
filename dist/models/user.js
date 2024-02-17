@@ -10,6 +10,12 @@ const userSchema = new mongoose_1.default.Schema({
         required: true,
         unique: true,
     },
+    resetPasswordToken: {
+        type: String,
+    },
+    resetPasswordOTP: {
+        type: String,
+    },
     email: {
         type: String,
         required: true,
@@ -23,6 +29,11 @@ const userSchema = new mongoose_1.default.Schema({
         type: String,
         required: true,
         unique: true,
+    },
+    role: {
+        type: String,
+        required: true,
+        enum: ['admin', 'user']
     },
     status: {
         type: Boolean,

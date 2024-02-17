@@ -1,7 +1,10 @@
+import User from '../models/user';
 import jwt, { VerifyErrors, JwtPayload as JsonWebTokenPayload } from 'jsonwebtoken';
 
 export interface JwtPayload extends JsonWebTokenPayload {
     _id?: string;
+    email?:string
+    resetPasswordToken?:string 
 }
 
 // sign jwt
@@ -19,3 +22,5 @@ export function verifyJWT(token: string): { payload: JwtPayload | null; expired:
         return { payload: null, expired: jwtError.name === 'TokenExpiredError' };
     }
 }
+
+

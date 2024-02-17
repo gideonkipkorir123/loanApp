@@ -7,8 +7,10 @@ const userSchema = new mongoose.Schema({
         unique: true,
     },
     resetPasswordToken:{
-        type:String
+        type:String,
+        
     },
+   
     email: {
         type: String,
         required: true,
@@ -23,6 +25,14 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
         unique: true,
+    },
+    phoneVerified:{
+        type:Boolean,
+        default:false
+    },
+    emailVerified:{
+        type:Boolean,
+        default:false
     },
     role: {
         type: String,

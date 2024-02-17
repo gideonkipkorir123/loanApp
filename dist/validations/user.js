@@ -1,7 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.passwordValidationSchema = exports.userValidationSchema = void 0;
+exports.newPasswordValidationSchema = exports.passwordValidationSchema = exports.userValidationSchema = void 0;
 const Joi = require("joi");
+const validRoles = ['admin', 'user', 'guest'];
 exports.userValidationSchema = Joi.object({
     fullName: Joi.string()
         .alphanum() // Allow alphanumeric characters
@@ -18,9 +19,15 @@ exports.userValidationSchema = Joi.object({
     phoneNumber: Joi.string()
         .pattern(new RegExp("^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-s./0-9]+$"))
         .required(),
+    role: Joi.string().valid(...validRoles).required(),
 });
 exports.passwordValidationSchema = Joi.object({
     password: Joi.string()
-        .pattern(new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.{8,})")) // Enforce password complexity
+        .pattern(new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9])(?=.{8,})"))
+        .required(),
+});
+exports.newPasswordValidationSchema = Joi.object({
+    newPassword: Joi.string()
+        .pattern(new RegExp("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^a-zA-Z0-9])(?=.{8,})"))
         .required(),
 });
