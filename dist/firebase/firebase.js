@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.storage = void 0;
 // Import the functions you need from the SDKs you need
 const app_1 = require("firebase/app");
-const analytics_1 = require("firebase/analytics");
 const storage_1 = require("@firebase/storage");
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
@@ -22,6 +21,5 @@ const firebaseConfig = {
 // Initialize Firebase
 const firebaseApp = (0, app_1.initializeApp)(firebaseConfig);
 exports.default = firebaseApp;
-const analytics = (0, analytics_1.getAnalytics)(firebaseApp);
 const storage = (0, storage_1.getStorage)(firebaseApp);
 exports.storage = storage;

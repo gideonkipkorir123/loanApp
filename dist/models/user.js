@@ -13,13 +13,24 @@ const userSchema = new mongoose_1.default.Schema({
     resetPasswordToken: {
         type: String,
     },
-    idImage: {
+    profileImageURL: {
         type: String,
         required: true
     },
-    userImageURL: {
+    frontIdURL: {
         type: String,
         required: true
+    },
+    backIdURL: {
+        type: String,
+        required: true
+    },
+    signatureURL: {
+        type: String,
+        required: true
+    },
+    profileImageUpdatedAt: {
+        type: Date,
     },
     email: {
         type: String,

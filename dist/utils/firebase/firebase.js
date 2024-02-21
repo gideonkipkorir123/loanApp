@@ -1,10 +1,9 @@
-
+"use strict";
 // // Import the functions you need from the SDKs you need
 // import { initializeApp } from "firebase/app";
 // import { getStorage } from "@firebase/storage";
 // import dotenv from "dotenv";
 // dotenv.config()
-
 // const firebaseConfig = {
 //     apiKey: process.env.FIREBASE_API,
 //     authDomain: process.env.FIREBASE_AUTH_ADMIN,
@@ -14,10 +13,8 @@
 //     appId: process.env.FIREBASE_APP_ID,
 //     measurementId: process.env.FIREBASE_MEASUREMENT_ID
 // };
-
 // // Initialize Firebase
 // const firebaseApp = initializeApp(firebaseConfig);
 // export default firebaseApp;
 // const storage = getStorage(firebaseApp);
-
 // export { storage };

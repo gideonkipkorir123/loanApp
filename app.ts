@@ -13,7 +13,7 @@ app.use(cookieParser());
 app.use(deserializeUser);
 app.use(express.urlencoded({ extended: false }));
 app.get('/', (req, res) => {
-    res.send('Hello there , This is my homepage!!!');
+    res.send('Hello there , This is my homepage!');
 });
 
 app.use(router)

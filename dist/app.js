@@ -16,6 +16,9 @@ app.use(express_1.default.json());
 app.use((0, cookie_parser_1.default)());
 app.use(deserializeUser_1.default);
 app.use(express_1.default.urlencoded({ extended: false }));
+app.get('/', (req, res) => {
+    res.send('Hello there , This is my homepage!');
+});
 app.use(index_1.default);
 const connectDB = async () => {
     try {

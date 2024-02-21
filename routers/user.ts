@@ -6,7 +6,7 @@ import {
     updateUserByIdController,
     deleteUserController,
 } from '../controllers/user';
-import { updateUserProfileImageHandler, uploadFilesHandler } from '../controllers/uploadDocs';
+// import { updateUserProfileImageHandler, uploadFilesHandler } from '../controllers/uploadDocs';
 const userRouter = express.Router();
 
 // Route for creating a new user
@@ -26,7 +26,7 @@ userRouter.delete('/:id', deleteUserController);
 
 
 // user upload
-userRouter.post('/upload', uploadFilesHandler, updateUserProfileImageHandler);
+// userRouter.post('/upload', uploadFilesHandler, updateUserProfileImageHandler);
 
 
 
