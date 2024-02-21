@@ -18,7 +18,7 @@ mpesaRouter.post('/initiate-payment', async (req: Request, res: Response, next: 
         const consumerSecret = process.env.MPESA_CUSTOMER_CONSUMER_SECRET;
         const lipaNaMpesaOnlinePasskey = process.env.MPESA_CUSTOMER_PASSKEY as string;
         const lipaNaMpesaOnlineShortcode = Number(process.env.MPESA_CUSTOMER_SHORT_CODE);
-        const lipaNaMpesaOnlineCallbackUrl = `${process.env.MPESA_CALLBACK_URL}/mpesa/callback`;
+        const lipaNaMpesaOnlineCallbackUrl = `${process.env.BASE_URL}/mpesa/callback`;
         const PartyB=process.env.MPESA_PARTYB
 
         // Generate token for authorization
@@ -51,7 +51,7 @@ mpesaRouter.post('/initiate-payment', async (req: Request, res: Response, next: 
                 PartyB: PartyB,
                 PhoneNumber: phoneNumber,
                 CallBackURL: lipaNaMpesaOnlineCallbackUrl,
-                AccountReference: "Loan APP",
+                AccountReference: "Loan APP", 
                 TransactionDesc: "Payment of Loan",
             },
             {
