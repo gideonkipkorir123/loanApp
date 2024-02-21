@@ -75,6 +75,15 @@ export async function updateUser(userId: string, userData: UserInterface): Promi
     }
 }
 
+export async function updateUserByEmail(email: string, userData: UserInterface): Promise<UserInterface | null> {
+    try {
+        const user = await User.findOneAndUpdate({email}, userData, { new: true }).lean() as UserInterface;
+        return user;
+    } catch (error: any) {
+        throw new Error(`Error updating user: ${error.message}`);
+    }
+}
+
 // DELETE (Delete a user by ID)
 export async function deleteUser(userId: string): Promise<void> {
     try {
@@ -83,3 +92,16 @@ export async function deleteUser(userId: string): Promise<void> {
         throw new Error(`Error deleting user: ${error.message}`);
     }
 }
+export const emailExists = async (email: string): Promise<boolean> => {
+    const unverifiedEmail = await User.findOne({ email }).lean() as UserInterface;
+    return !!unverifiedEmail; // Return true if the user exists, false otherwise
+};
+export const getUserBySignToken = async (email: string, signEmailToken: string): Promise<any> => {
+    try {
+        const otpEntry = await User.findOne({ email, signEmailToken });
+        return otpEntry;
+    } catch (error) {
+        console.error('Error getting signToken by email:', error);
+        throw error;
+    }
+};

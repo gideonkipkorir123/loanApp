@@ -13,8 +13,13 @@ const userSchema = new mongoose_1.default.Schema({
     resetPasswordToken: {
         type: String,
     },
-    resetPasswordOTP: {
+    idImage: {
         type: String,
+        required: true
+    },
+    userImageURL: {
+        type: String,
+        required: true
     },
     email: {
         type: String,
@@ -29,6 +34,14 @@ const userSchema = new mongoose_1.default.Schema({
         type: String,
         required: true,
         unique: true,
+    },
+    phoneVerified: {
+        type: Boolean,
+        default: false
+    },
+    emailVerified: {
+        type: Boolean,
+        default: false
     },
     role: {
         type: String,

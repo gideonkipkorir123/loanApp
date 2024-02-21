@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUser = exports.updateUser = exports.getAllUsers = exports.getUserByResetOTP = exports.getUserByResetToken = exports.getUserByPhoneNumber = exports.getUserByEmail = exports.getUserById = exports.createUser = void 0;
+exports.getUserBySignToken = exports.emailExists = exports.deleteUser = exports.updateUserByEmail = exports.updateUser = exports.getAllUsers = exports.getUserByResetOTP = exports.getUserByResetToken = exports.getUserByPhoneNumber = exports.getUserByEmail = exports.getUserById = exports.createUser = void 0;
 const user_1 = __importDefault(require("../models/user"));
 // CREATE (Insert a new user)
 async function createUser(user) {
@@ -91,6 +91,16 @@ async function updateUser(userId, userData) {
     }
 }
 exports.updateUser = updateUser;
+async function updateUserByEmail(email, userData) {
+    try {
+        const user = await user_1.default.findOneAndUpdate({ email }, userData, { new: true }).lean();
+        return user;
+    }
+    catch (error) {
+        throw new Error(`Error updating user: ${error.message}`);
+    }
+}
+exports.updateUserByEmail = updateUserByEmail;
 // DELETE (Delete a user by ID)
 async function deleteUser(userId) {
     try {
@@ -101,3 +111,19 @@ async function deleteUser(userId) {
     }
 }
 exports.deleteUser = deleteUser;
+const emailExists = async (email) => {
+    const unverifiedEmail = await user_1.default.findOne({ email }).lean();
+    return !!unverifiedEmail; // Return true if the user exists, false otherwise
+};
+exports.emailExists = emailExists;
+const getUserBySignToken = async (email, signEmailToken) => {
+    try {
+        const otpEntry = await user_1.default.findOne({ email, signEmailToken });
+        return otpEntry;
+    }
+    catch (error) {
+        console.error('Error getting signToken by email:', error);
+        throw error;
+    }
+};
+exports.getUserBySignToken = getUserBySignToken;

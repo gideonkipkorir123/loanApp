@@ -15,4 +15,7 @@ router.use('/loans', requireUser_1.requireUser, loan_1.default);
 router.get('/resetPasswordPage', (req, res) => {
     res.send('Reset Password Page');
 });
+router.get('/verifyEmailPage', (req, res) => {
+    res.send('http:localhost:3000/auth/verifyEmailPage');
+});
 exports.default = router;

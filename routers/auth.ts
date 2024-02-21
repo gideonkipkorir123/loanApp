@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import { signJWT } from '../utils/jwt'
 import bcrypt from "bcrypt";
 import User from "../models/user";
-import { createUserController } from "../controllers/user";
+import { createUserController, signEmail, verifyEmail } from "../controllers/user";
 import { createSession } from "../db";
 import { ROLES, authRole, requireUser } from "../middleware/requireUser";
 import { requestPasswordResetByEmail, requestPasswordResetViaOTP, resetUserPasswordByEmail, updateLoggedInUserPassword, verifyToken } from "../controllers/password";
@@ -93,4 +93,7 @@ authRouter.post("/phoneNumber", requestPasswordResetViaOTP)
 
 authRouter.post("/get-otp", requireUser, authRole(ROLES.user), createOTPController)
 authRouter.post("/verify-otp", requireUser, authRole(ROLES.user), verifyOTPByPhoneNumberController)
+// sign users email
+authRouter.post("/sign-email", signEmail)
+authRouter.post("/verify-email", verifyEmail)
 export default authRouter;

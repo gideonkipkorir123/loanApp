@@ -9,7 +9,7 @@ const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
 const nodemailer_sendgrid_1 = __importDefault(require("nodemailer-sendgrid"));
 const transport = nodemailer_1.default.createTransport((0, nodemailer_sendgrid_1.default)({
-    apiKey: process.env.SENDGRID_API_KEY
+    apiKey: process.env.SENDGRID_API_KEY,
 }));
 const sendEmail = async (params) => {
     return transport.sendMail({

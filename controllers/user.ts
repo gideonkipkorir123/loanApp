@@ -1,14 +1,19 @@
 import { Request, Response } from 'express';
+import dotenv from "dotenv";
+dotenv.config();
+
 import {
     createUser,
     getUserById,
     getAllUsers,
     updateUser,
     deleteUser,
+    updateUserByEmail,
 } from '../utils/user';
 import bcrypt from 'bcrypt'
-import jwt from "jsonwebtoken";
 import { passwordValidationSchema, userValidationSchema } from '../validations/user';
+import { sendEmail } from '../utils/nodemailer';
+import { signJWT, verifyJWT } from '../utils/jwt';
 
 // Controller for creating a new user
 export const createUserController = async (
@@ -16,7 +21,9 @@ export const createUserController = async (
     res: Response,
 ) => {
 
-    const { phoneNumber, fullName, address, email, password ,role} = req.body;
+    const { phoneNumber, fullName, address, email, password, role } = req.body;
+
+
 
     const { error, value } = userValidationSchema.validate(req.body);
     if (error) {
@@ -34,7 +41,7 @@ export const createUserController = async (
             role,
             password: hashedPassword,
         });
-        return res.status(201).json({ message:"user created successfully" });
+        return res.status(201).json({ message: "user created successfully" });
 
     } catch (error: any) {
         return res.status(500).json(error.message);
@@ -111,5 +118,44 @@ export const deleteUserController = async (req: Request, res: Response): Promise
         res.json({ message: 'User deleted successfully' });
     } catch (error: any) {
         res.status(500).json({ error: error.message });
+    }
+};
+
+// VERIFY EMAIL
+export const signEmail = async (req: Request, res: Response) => {
+    try {
+        const { email } = req.body;
+        const token = signJWT({ email }, '10m')
+        // await createVerifyEmail(email, EmailToken)
+        const subject = 'Confirm Email Address';
+        const BASE_URL = process.env.BASE_URL as string;
+        const verifyEmailLinkUrl = `${BASE_URL}/auth/signEmailPage/${token}`
+
+        const data = `<p>Click this Link To Confirm Your Email Address</p>
+                     <a href=${verifyEmailLinkUrl}>Confirm Email Link</a>`;
+
+        await sendEmail({ email, subject, data });
+        return res.status(200).json({ message: "Email verification link sent successfully", token });
+    } catch (error: any) {
+        console.error(`Error generating verifyEmailLink: ${error.message}`);
+        return res.status(500).json({ error: { message: "Something went wrong. Please try again." } });
+    }
+};
+export const verifyEmail = async (req: Request, res: Response) => {
+    try {
+        const { token } = req.body;
+        const decodedData = verifyJWT(token);
+
+        if (!decodedData || decodedData.expired === true) {
+            return res.status(400).json({ message: !decodedData ? "Invalid Token" : "Token Expired" });
+        }
+
+        const email = decodedData.payload?.email as string
+
+        const updatedUser = await updateUserByEmail(email, { emailVerified: true });
+
+       return res.json(updatedUser)
+    } catch (error: any) {
+        return res.status(500).json({ message: `Something went wrong: ${error.message}` });
     }
 };

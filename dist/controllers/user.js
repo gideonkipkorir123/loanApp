@@ -14,10 +14,14 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUserController = exports.updateUserByIdController = exports.getAllUsersController = exports.getUserByIdController = exports.createUserController = void 0;
+exports.verifyEmail = exports.signEmail = exports.deleteUserController = exports.updateUserByIdController = exports.getAllUsersController = exports.getUserByIdController = exports.createUserController = void 0;
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config();
 const user_1 = require("../utils/user");
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const user_2 = require("../validations/user");
+const nodemailer_1 = require("../utils/nodemailer");
+const jwt_1 = require("../utils/jwt");
 // Controller for creating a new user
 const createUserController = async (req, res) => {
     const { phoneNumber, fullName, address, email, password, role } = req.body;
@@ -112,3 +116,40 @@ const deleteUserController = async (req, res) => {
     }
 };
 exports.deleteUserController = deleteUserController;
+// VERIFY EMAIL
+const signEmail = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const token = (0, jwt_1.signJWT)({ email }, '10m');
+        // await createVerifyEmail(email, EmailToken)
+        const subject = 'Confirm Email Address';
+        const BASE_URL = process.env.BASE_URL;
+        const verifyEmailLinkUrl = `${BASE_URL}/auth/signEmailPage/${token}`;
+        const data = `<p>Click this Link To Confirm Your Email Address</p>
+                     <a href=${verifyEmailLinkUrl}>Confirm Email Link</a>`;
+        await (0, nodemailer_1.sendEmail)({ email, subject, data });
+        return res.status(200).json({ message: "Email verification link sent successfully", token });
+    }
+    catch (error) {
+        console.error(`Error generating verifyEmailLink: ${error.message}`);
+        return res.status(500).json({ error: { message: "Something went wrong. Please try again." } });
+    }
+};
+exports.signEmail = signEmail;
+const verifyEmail = async (req, res) => {
+    var _a;
+    try {
+        const { token } = req.body;
+        const decodedData = (0, jwt_1.verifyJWT)(token);
+        if (!decodedData || decodedData.expired === true) {
+            return res.status(400).json({ message: !decodedData ? "Invalid Token" : "Token Expired" });
+        }
+        const email = (_a = decodedData.payload) === null || _a === void 0 ? void 0 : _a.email;
+        const updatedUser = await (0, user_1.updateUserByEmail)(email, { emailVerified: true });
+        return res.json(updatedUser);
+    }
+    catch (error) {
+        return res.status(500).json({ message: `Something went wrong: ${error.message}` });
+    }
+};
+exports.verifyEmail = verifyEmail;

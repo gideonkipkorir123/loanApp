@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const user_1 = require("../controllers/user");
+const uploadUser_1 = require("../firebase/controller/uploadUser");
 const userRouter = express_1.default.Router();
 // Route for creating a new user
 userRouter.post('/', user_1.createUserController);
@@ -16,4 +17,6 @@ userRouter.get('/', user_1.getAllUsersController);
 userRouter.patch('/:id', user_1.updateUserByIdController);
 // Route for deleting a user by ID
 userRouter.delete('/:id', user_1.deleteUserController);
+// user upload
+userRouter.post('/upload-image', uploadUser_1.upload.single('image'), uploadUser_1.uploadImageHandler);
 exports.default = userRouter;

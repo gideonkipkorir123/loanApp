@@ -10,7 +10,7 @@ const transport = nodemailer.createTransport(
 );
 
 export const sendEmail = async (params: {
-    email: string
+    email: string 
     subject: string
     data: string
 

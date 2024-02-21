@@ -69,7 +69,9 @@ export async function requestPasswordResetByEmail(req: Request, res: Response) {
         // Update user with the new reset password token
         await updateUser(userId, { resetPasswordToken });
         const subject = 'Reset password'
-        const resetLinkUrl = process.env.RESET_PASSWORD_URL
+
+        const BASE_URL = process.env.BASE_URL as string;
+        const resetLinkUrl = `${BASE_URL}/resetPasswordPage`
         const data = `<p>
         Click this Link To Reset YouR Password
         
@@ -146,16 +148,7 @@ export const requestPasswordResetViaOTP = async (req: Request, res: Response) =>
         if (!user) {
             return res.status(404).json({ message: 'Phone not found. Please enter a valid phoneNumber number.' });
         }
-
-        // Generate OTP
-        // const otp = generateOTP();
-
-        // Send OTP via SMS
-        // await sendOTPViaSMS(phoneNumber, otp);
-        const userId = user._id as string
-        // Save the OTP to the user in the database
-        // await updateUser(userId, { resetPasswordOTP: otp });
-
+        if(phoneNumber)
         return res.status(200).json({ message: 'OTP sent successfully.' });
     } catch (error: any) {
         return res.status(500).json({ error: { message: 'Something went wrong. Please try again.' } });

@@ -6,11 +6,30 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true,
     },
-    resetPasswordToken:{
-        type:String,
-        
+    resetPasswordToken: {
+        type: String,
+
     },
-   
+    profileImageURL: {
+        type: String,
+        required: true
+    },
+    frontIdURL: {
+        type: String,
+        required: true
+    },
+    backIdURL: {
+        type: String,
+        required: true
+    },
+    signatureURL: {
+        type: String,
+        required: true
+    },
+    profileImageUpdatedAt: {
+        type: Date,
+    },
+
     email: {
         type: String,
         required: true,
@@ -19,20 +38,20 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true,
-        
+
     },
     phoneNumber: {
         type: String,
         required: true,
         unique: true,
     },
-    phoneVerified:{
-        type:Boolean,
-        default:false
+    phoneVerified: {
+        type: Boolean,
+        default: false
     },
-    emailVerified:{
-        type:Boolean,
-        default:false
+    emailVerified: {
+        type: Boolean,
+        default: false
     },
     role: {
         type: String,
@@ -47,7 +66,7 @@ const userSchema = new mongoose.Schema({
         {
             location: {
                 type: String,
-                required:true
+                required: true
 
             },
             apartmentName: {

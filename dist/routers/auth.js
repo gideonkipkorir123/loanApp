@@ -11,6 +11,7 @@ const user_2 = require("../controllers/user");
 const db_1 = require("../db");
 const requireUser_1 = require("../middleware/requireUser");
 const password_1 = require("../controllers/password");
+const OTP_1 = require("../controllers/OTP");
 const authRouter = express_1.default.Router();
 authRouter.post("/register", user_2.createUserController);
 authRouter.post("/login", async (req, res) => {
@@ -76,4 +77,10 @@ authRouter.post("/resetPassword", password_1.resetUserPasswordByEmail);
 authRouter.post("/verifyToken", password_1.verifyToken);
 // SEND OTP VIA PHONENUMBER
 authRouter.post("/phoneNumber", password_1.requestPasswordResetViaOTP);
+// AFRICA
+authRouter.post("/get-otp", requireUser_1.requireUser, (0, requireUser_1.authRole)(requireUser_1.ROLES.user), OTP_1.createOTPController);
+authRouter.post("/verify-otp", requireUser_1.requireUser, (0, requireUser_1.authRole)(requireUser_1.ROLES.user), OTP_1.verifyOTPByPhoneNumberController);
+// sign users email
+authRouter.post("/sign-email", user_2.signEmail);
+authRouter.post("/verify-email", user_2.verifyEmail);
 exports.default = authRouter;

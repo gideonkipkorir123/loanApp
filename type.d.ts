@@ -16,11 +16,15 @@ export interface UserInterface {
     createdAt?: Date;
     updatedAt?: Date;
     address?: Address[];
-    phoneVerified?: Boolean;
-    emailVerified?: Boolean;
+    phoneVerified?: boolean;
+    emailVerified?: boolean;
+    signEmailToken?: string;
     role?: string;
-    resetPasswordToken?: string
-
+    profileimageURL?: string;
+    frontIdURL?: string;  
+    backIdURL?: string;  
+    signatureURL?: string;
+    resetPasswordToken?: string;
 }
 
 declare module 'express-serve-static-core' {

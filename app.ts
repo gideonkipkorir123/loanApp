@@ -12,6 +12,11 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(deserializeUser);
 app.use(express.urlencoded({ extended: false }));
+app.get('/', (req, res) => {
+    const callBack=req.body
+    console.log(callBack)
+    res.send('Hello there , This is my homepage!');
+});
 
 app.use(router)
 const connectDB = async () => {
