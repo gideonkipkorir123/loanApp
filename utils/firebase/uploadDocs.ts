@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
-import { storage } from "./firebase";
-import { ref, uploadBytes, getDownloadURL } from "@firebase/storage";
-import User from "../../models/user";
+import { Writable } from 'stream';
+import User from '../../models/user';
 import sizeOf from 'image-size';
+import { bucket } from './firebase';
 
 const isImageValid = (file: Express.Multer.File): boolean => {
     const allowedExtensions = ['.jpg', '.webp', '.png'];
@@ -35,13 +35,11 @@ const uploadFile = async (file: Express.Multer.File, directory: string): Promise
             throw new Error('File is undefined.');
         }
 
-        const fileBuffer = file.buffer;
-
         if (!isImageValid(file)) {
             throw new Error('Invalid file type. Only .jpg, .webp, and .png allowed.');
         }
 
-        const dimensions = getImageDimensions(fileBuffer);
+        const dimensions = getImageDimensions(file.buffer);
 
         if (!dimensions) {
             console.error('Invalid image dimensions.');
@@ -51,10 +49,27 @@ const uploadFile = async (file: Express.Multer.File, directory: string): Promise
         // Generate a unique filename using uuid
         const uniqueFilename = `${uuidv4()}_${file.originalname}`;
 
-        const storageRef = ref(storage, `${directory}/${uniqueFilename}`);
-        await uploadBytes(storageRef, fileBuffer);
+        const fileStream = new Writable({
+            write: (chunk, encoding, next) => {
+                bucket.file(`${directory}/${uniqueFilename}`).createWriteStream()
+                    .on('finish', next)
+                    .on('error', (error) => {
+                        console.error('Error uploading file:', error);
+                        next(error);
+                    })
+                    .end(chunk);
+            },
+        });
 
-        const downloadURL = await getDownloadURL(storageRef);
+        await new Promise((resolve, reject) => {
+            fileStream
+                .on('finish', resolve)
+                .on('error', reject);
+            fileStream.write(file.buffer);
+            fileStream.end();
+        });
+
+        const downloadURL = `https://storage.googleapis.com/${bucket.name}/${directory}/${uniqueFilename}`;
         return downloadURL;
     } catch (error) {
         console.error('Error uploading file:', error);
@@ -64,32 +79,86 @@ const uploadFile = async (file: Express.Multer.File, directory: string): Promise
 
 const updateUserProfileImage = async (
     userId: string,
-    imageFile: Express.Multer.File,
-    frontIdFile: Express.Multer.File,
-    backIdFile: Express.Multer.File,
-    signatureFile: Express.Multer.File
+    imageFile: Express.Multer.File | Express.Multer.File[] | undefined,
+    frontIdFile: Express.Multer.File | Express.Multer.File[] | undefined,
+    backIdFile: Express.Multer.File | Express.Multer.File[] | undefined,
+    signatureFile: Express.Multer.File | Express.Multer.File[] | undefined
 ): Promise<{ imageURL: string, frontIdURL: string, backIdURL: string, signatureURL: string }> => {
     try {
-        const imageURL = await uploadFile(imageFile, 'images');
-        const frontIdURL = await uploadFile(frontIdFile, 'documents');
-        const backIdURL = await uploadFile(backIdFile, 'documents');
-        const signatureURL = await uploadFile(signatureFile, 'documents');
+        const uploadFiles = async (file: Express.Multer.File | Express.Multer.File[] | undefined, directory: string): Promise<string[]> => {
+            if (!file) {
+                throw new Error('File is undefined.');
+            }
+
+            const files = Array.isArray(file) ? file : [file];
+            const downloadURLs: string[] = [];
+
+            for (const individualFile of files) {
+                const fileBuffer = individualFile.buffer;
+
+                if (!isImageValid(individualFile)) {
+                    throw new Error('Invalid file type. Only .jpg, .webp, and .png allowed.');
+                }
+
+                const dimensions = getImageDimensions(fileBuffer);
+
+                if (!dimensions) {
+                    console.error('Invalid image dimensions.');
+                    throw new Error('Invalid image dimensions.');
+                }
+
+                // Generate a unique filename using uuid
+                const uniqueFilename = `${uuidv4()}_${individualFile.originalname}`;
+
+                const fileStream = new Writable({
+                    write: (chunk, encoding, next) => {
+                        bucket.file(`${directory}/${uniqueFilename}`).createWriteStream()
+                            .on('finish', next)
+                            .on('error', (error) => {
+                                console.error('Error uploading file:', error);
+                                next(error);
+                            })
+                            .end(chunk);
+                    },
+                });
+
+                await new Promise((resolve, reject) => {
+                    fileStream
+                        .on('finish', resolve)
+                        .on('error', reject);
+                    fileStream.write(fileBuffer);
+                    fileStream.end();
+                });
+
+                const downloadURL = `https://storage.googleapis.com/${bucket.name}/${directory}/${uniqueFilename}`;
+                downloadURLs.push(downloadURL);
+            }
+
+            return downloadURLs;
+        };
+
+        const [imageURL, frontIdURL, backIdURL, signatureURL] = await Promise.all([
+            uploadFiles(imageFile, 'images'),
+            uploadFiles(frontIdFile, 'documents'),
+            uploadFiles(backIdFile, 'documents'),
+            uploadFiles(signatureFile, 'documents'),
+        ]);
 
         const timestamp = new Date();
 
         await User.findByIdAndUpdate(userId, {
-            profileImageURL: imageURL,
-            frontIdURL,
-            backIdURL,
-            signatureURL,
+            profileImageURL: imageURL[0], // Assuming only one image is uploaded
+            frontIdURL: frontIdURL[0], // Assuming only one frontId is uploaded
+            backIdURL: backIdURL[0], // Assuming only one backId is uploaded
+            signatureURL: signatureURL[0], // Assuming only one signature is uploaded
             profileImageUpdatedAt: timestamp,
         });
 
         return {
-            imageURL,
-            frontIdURL,
-            backIdURL,
-            signatureURL,
+            imageURL: imageURL[0], // Assuming only one image is uploaded
+            frontIdURL: frontIdURL[0], // Assuming only one frontId is uploaded
+            backIdURL: backIdURL[0], // Assuming only one backId is uploaded
+            signatureURL: signatureURL[0], // Assuming only one signature is uploaded
         };
     } catch (error) {
         console.error('Error updating user profile:', error);

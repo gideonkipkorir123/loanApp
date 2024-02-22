@@ -5,10 +5,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateUserProfileImage = void 0;
 const uuid_1 = require("uuid");
-const firebase_1 = require("./firebase");
-const storage_1 = require("@firebase/storage");
 const user_1 = __importDefault(require("../../models/user"));
 const image_size_1 = __importDefault(require("image-size"));
+const stream_1 = require("stream");
+const backendfirebase_1 = require("./backendfirebase");
 const isImageValid = (file) => {
     const allowedExtensions = ['.jpg', '.webp', '.png'];
     const fileExtension = file.originalname.substring(file.originalname.lastIndexOf('.')).toLowerCase();
@@ -36,20 +36,35 @@ const uploadFile = async (file, directory) => {
         if (!file) {
             throw new Error('File is undefined.');
         }
-        const fileBuffer = file.buffer;
         if (!isImageValid(file)) {
             throw new Error('Invalid file type. Only .jpg, .webp, and .png allowed.');
         }
-        const dimensions = getImageDimensions(fileBuffer);
+        const dimensions = getImageDimensions(file.buffer);
         if (!dimensions) {
             console.error('Invalid image dimensions.');
             throw new Error('Invalid image dimensions.');
         }
         // Generate a unique filename using uuid
         const uniqueFilename = `${(0, uuid_1.v4)()}_${file.originalname}`;
-        const storageRef = (0, storage_1.ref)(firebase_1.storage, `${directory}/${uniqueFilename}`);
-        await (0, storage_1.uploadBytes)(storageRef, fileBuffer);
-        const downloadURL = await (0, storage_1.getDownloadURL)(storageRef);
+        const fileStream = new stream_1.Writable({
+            write: (chunk, encoding, next) => {
+                backendfirebase_1.bucket.file(`${directory}/${uniqueFilename}`).createWriteStream()
+                    .on('finish', next)
+                    .on('error', (error) => {
+                    console.error('Error uploading file:', error);
+                    next(error);
+                })
+                    .end(chunk);
+            },
+        });
+        await new Promise((resolve, reject) => {
+            fileStream
+                .on('finish', resolve)
+                .on('error', reject);
+            fileStream.write(file.buffer);
+            fileStream.end();
+        });
+        const downloadURL = `https://storage.googleapis.com/${backendfirebase_1.bucket.name}/${directory}/${uniqueFilename}`;
         return downloadURL;
     }
     catch (error) {
