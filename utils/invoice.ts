@@ -33,8 +33,24 @@ const updateInvoiceByMpesaIDs = async (merchantRequestId: string, checkoutReques
         throw new Error(`Error updating invoice by Mpesa IDs: ${error.message}`);
     }
 };
+const deleteInvoiceByMpesaIDs = async (merchantRequestId: string, checkoutRequestId: string) => {
+    try {
+        const deletedInvoice = await Invoice.findOneAndDelete({
+            'mpesaResponse.MerchantRequestID': merchantRequestId,
+            'mpesaResponse.CheckoutRequestID': checkoutRequestId,
+        });
 
-export default updateInvoiceByMpesaIDs;
+        if (!deletedInvoice) {
+            throw new Error('Invoice not found');
+        }
+
+        return deletedInvoice;
+    } catch (error: any) {
+        throw new Error(`Error deleting invoice by Mpesa IDs: ${error.message}`);
+    }
+};
+
+export { updateInvoiceByMpesaIDs, deleteInvoiceByMpesaIDs, createInvoice };
 
 
 // // Get all invoices
@@ -76,11 +92,3 @@ export default updateInvoiceByMpesaIDs;
 //         throw new Error(`Error deleting invoice by ID: ${error.message}`);
 //     }
 // };
-
-export {
-    createInvoice,
-    //     getAllInvoices,
-    //     getInvoiceById,
-    //     updateInvoiceById,
-    // deleteInvoiceById,
-};

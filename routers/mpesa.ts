@@ -2,7 +2,7 @@ import axios from "axios";
 import { NextFunction, Request, Response } from "express";
 import express from 'express';
 import moment from 'moment'
-import updateInvoiceByMpesaIDs, { createInvoice } from "../utils/invoice";
+import {createInvoice, updateInvoiceByMpesaIDs,deleteInvoiceByMpesaIDs} from "../utils/invoice";
 import { requireUser } from "../middleware/requireUser";
 
 const mpesaRouter = express.Router();
@@ -29,7 +29,10 @@ mpesaRouter.post('/callback', async (req: Request, res: Response) => {
             // Payment failed
             const errorMessage = stkCallback?.ResultDesc;
 
-            // Handle the failed payment, log the error, etc.
+            // Capture the IDs before calling deleteInvoiceByMpesaIDs
+            const merchantRequestID = stkCallback?.MerchantRequestID;
+            const checkoutRequestID = stkCallback?.CheckoutRequestID;
+            await deleteInvoiceByMpesaIDs(merchantRequestID,checkoutRequestID)
             console.error('Mpesa Payment Failed:', errorMessage);
 
             return res.status(400).json({ error: 'Payment failed', errorMessage });

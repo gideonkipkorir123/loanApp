@@ -1,27 +1,4 @@
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -29,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const axios_1 = __importDefault(require("axios"));
 const express_1 = __importDefault(require("express"));
 const moment_1 = __importDefault(require("moment"));
-const invoice_1 = __importStar(require("../utils/invoice"));
+const invoice_1 = require("../utils/invoice");
 const requireUser_1 = require("../middleware/requireUser");
 const mpesaRouter = express_1.default.Router();
 mpesaRouter.post('/callback', async (req, res) => {
@@ -45,13 +22,16 @@ mpesaRouter.post('/callback', async (req, res) => {
             // Payment successful
             const merchantRequestID = stkCallback === null || stkCallback === void 0 ? void 0 : stkCallback.MerchantRequestID;
             const checkoutRequestID = stkCallback === null || stkCallback === void 0 ? void 0 : stkCallback.CheckoutRequestID;
-            await (0, invoice_1.default)(merchantRequestID, checkoutRequestID, { status: 'confirmed', mpesaResponseCallback: mpesaBody });
+            await (0, invoice_1.updateInvoiceByMpesaIDs)(merchantRequestID, checkoutRequestID, { status: 'confirmed', mpesaResponseCallback: mpesaBody });
             return res.status(200).json({ message: 'Payment successful', merchantRequestID, checkoutRequestID });
         }
         else {
             // Payment failed
             const errorMessage = stkCallback === null || stkCallback === void 0 ? void 0 : stkCallback.ResultDesc;
-            // Handle the failed payment, log the error, etc.
+            // Capture the IDs before calling deleteInvoiceByMpesaIDs
+            const merchantRequestID = stkCallback === null || stkCallback === void 0 ? void 0 : stkCallback.MerchantRequestID;
+            const checkoutRequestID = stkCallback === null || stkCallback === void 0 ? void 0 : stkCallback.CheckoutRequestID;
+            await (0, invoice_1.deleteInvoiceByMpesaIDs)(merchantRequestID, checkoutRequestID);
             console.error('Mpesa Payment Failed:', errorMessage);
             return res.status(400).json({ error: 'Payment failed', errorMessage });
         }
