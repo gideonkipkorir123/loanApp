@@ -18,10 +18,8 @@ const uploadFilesHandler = upload.fields([
 const updateUserProfileImageHandler = async (req: Request, res: Response) => {
     try {
         if (!req.files) {
-            return res.status(400).json({ message: 'No files uploaded' });
+            throw new Error('No files uploaded');
         }
-
-        console.log(req.files, "req.files");
 
         const files = req.files as {
             image?: Express.Multer.File | Express.Multer.File[]; // Updated to accept an array or a single file
@@ -32,7 +30,7 @@ const updateUserProfileImageHandler = async (req: Request, res: Response) => {
 
         const userId = req.user?._id;
         if (!userId) {
-            return res.status(401).json({ message: 'Unauthorized' });
+            throw new Error('Unauthorized');
         }
 
         // Extract individual files
@@ -43,7 +41,7 @@ const updateUserProfileImageHandler = async (req: Request, res: Response) => {
 
         // Check for the existence of files before proceeding
         if (!imageFile || !frontIdFile || !backIdFile || !signatureFile) {
-            return res.status(400).json({ message: 'Required files are missing' });
+            throw new Error('Required files are missing');
         }
 
         // Update user profile image using utility function
@@ -59,8 +57,8 @@ const updateUserProfileImageHandler = async (req: Request, res: Response) => {
             message: 'Files uploaded successfully',
             userProfileUrls,
         });
-    } catch (error) {
-        console.error('Error uploading files:', error);
+    } catch (error: any) {
+        console.error('Error uploading files::', error.message);
         res.status(500).json({ error: { message: 'Something went wrong. Please try again.' } });
     }
 };
