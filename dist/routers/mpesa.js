@@ -28,10 +28,7 @@ mpesaRouter.post('/callback', async (req, res) => {
         else {
             // Payment failed
             const errorMessage = stkCallback === null || stkCallback === void 0 ? void 0 : stkCallback.ResultDesc;
-            // Capture the IDs before calling deleteInvoiceByMpesaIDs
-            const merchantRequestID = stkCallback === null || stkCallback === void 0 ? void 0 : stkCallback.MerchantRequestID;
-            const checkoutRequestID = stkCallback === null || stkCallback === void 0 ? void 0 : stkCallback.CheckoutRequestID;
-            await (0, invoice_1.deleteInvoiceByMpesaIDs)(merchantRequestID, checkoutRequestID);
+            // Handle the failed payment, log the error, etc.
             console.error('Mpesa Payment Failed:', errorMessage);
             return res.status(400).json({ error: 'Payment failed', errorMessage });
         }
