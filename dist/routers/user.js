@@ -17,6 +17,6 @@ userRouter.get('/', user_1.getAllUsersController);
 userRouter.patch('/:id', user_1.updateUserByIdController);
 // Route for deleting a user by ID
 userRouter.delete('/:id', user_1.deleteUserController);
-// user upload
-userRouter.post('/upload', uploadDocs_1.uploadFilesHandler, uploadDocs_1.updateUserProfileImageHandler);
+// upload data 
+userRouter.post('/uploaddocs', uploadDocs_1.uploadFilesHandler, uploadDocs_1.updateUserProfileImageHandler);
 exports.default = userRouter;

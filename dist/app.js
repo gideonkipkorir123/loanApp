@@ -17,14 +17,14 @@ app.use((0, cookie_parser_1.default)());
 app.use(deserializeUser_1.default);
 app.use(express_1.default.urlencoded({ extended: false }));
 app.get('/', (req, res) => {
-    res.send('Hello there , This is my homepage!');
+    res.send('Hello there , This is my api!');
 });
 app.use(index_1.default);
 const connectDB = async () => {
     try {
         const uri = process.env.MONGO_URI || "";
         await mongoose_1.default.connect(uri);
-        console.log("MongoDB connected successfully!");
+        console.log("MongoDB connected successfully!!!");
     }
     catch (error) {
         console.error("MongoDB connection error:", error);
