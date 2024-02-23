@@ -30,7 +30,8 @@ exports.bucket = void 0;
 const admin = __importStar(require("firebase-admin"));
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
-const serviceAccount = __importStar(require("../../firebase_service_account.json"));
+const firebaseServiceAccount = process.env.FIREBASE_SERVICE_ACCOUNT;
+const serviceAccount = JSON.parse(firebaseServiceAccount);
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
     storageBucket: process.env.FIREBASE_BUCKET,
