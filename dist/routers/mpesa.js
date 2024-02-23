@@ -13,7 +13,7 @@ mpesaRouter.post('/callback', async (req, res) => {
     var _a;
     try {
         const mpesaBody = req.body;
-        console.log('Mpesa Callback Body:', mpesaBody);
+        console.log('Mpesa Callback Body:::', mpesaBody);
         // Use optional chaining to handle potential undefined properties
         const stkCallback = (_a = mpesaBody === null || mpesaBody === void 0 ? void 0 : mpesaBody.Body) === null || _a === void 0 ? void 0 : _a.stkCallback;
         // Use optional chaining for ResultCode
