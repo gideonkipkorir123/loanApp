@@ -93,8 +93,7 @@ mpesaRouter.post('/initiate-payment', requireUser, async (req: Request, res: Res
                 },
             }
         );
-        // create invoice
-        await createInvoice({ phoneNumber, user: userId, amount, mpesaResponse: data });
+
 
         res.status(200).json(data);
 
