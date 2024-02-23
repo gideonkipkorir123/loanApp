@@ -32,24 +32,27 @@ const moment_1 = __importDefault(require("moment"));
 const invoice_1 = __importStar(require("../utils/invoice"));
 const requireUser_1 = require("../middleware/requireUser");
 const mpesaRouter = express_1.default.Router();
-mpesaRouter.post('/callback', async (req, res, next) => {
+mpesaRouter.post('/callback', async (req, res) => {
+    var _a;
     try {
         const mpesaBody = req.body;
-        console.log(mpesaBody, 'mpesabody');
-        const stkCallback = mpesaBody.Body.stkCallback;
-        console.log(stkCallback, 'stkCallback');
-        const resultCode = stkCallback.ResultCode;
-        console.log(resultCode, 'resultCode');
+        console.log('Mpesa Callback Body:', mpesaBody);
+        // Use optional chaining to handle potential undefined properties
+        const stkCallback = (_a = mpesaBody === null || mpesaBody === void 0 ? void 0 : mpesaBody.Body) === null || _a === void 0 ? void 0 : _a.stkCallback;
+        console.log('Stk Callback:', stkCallback);
+        // Use optional chaining for ResultCode
+        const resultCode = stkCallback === null || stkCallback === void 0 ? void 0 : stkCallback.ResultCode;
+        console.log('Result Code:', resultCode);
         if (resultCode === 0) {
             // Payment successful
-            const merchantRequestID = stkCallback.MerchantRequestID;
-            const checkoutRequestID = stkCallback.CheckoutRequestID;
+            const merchantRequestID = stkCallback === null || stkCallback === void 0 ? void 0 : stkCallback.MerchantRequestID;
+            const checkoutRequestID = stkCallback === null || stkCallback === void 0 ? void 0 : stkCallback.CheckoutRequestID;
             await (0, invoice_1.default)(merchantRequestID, checkoutRequestID, { status: 'confirmed', mpesaResponseCallback: mpesaBody });
             return res.status(200).json({ message: 'Payment successful', merchantRequestID, checkoutRequestID });
         }
         else {
             // Payment failed
-            const errorMessage = stkCallback.ResultDesc;
+            const errorMessage = stkCallback === null || stkCallback === void 0 ? void 0 : stkCallback.ResultDesc;
             // Handle the failed payment, log the error, etc.
             console.error('Mpesa Payment Failed:', errorMessage);
             return res.status(400).json({ error: 'Payment failed', errorMessage });

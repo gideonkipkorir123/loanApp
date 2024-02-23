@@ -6,28 +6,30 @@ import updateInvoiceByMpesaIDs, { createInvoice } from "../utils/invoice";
 import { requireUser } from "../middleware/requireUser";
 
 const mpesaRouter = express.Router();
-
-mpesaRouter.post('/callback', async (req: Request, res: Response, next: NextFunction) => {
+mpesaRouter.post('/callback', async (req: Request, res: Response) => {
     try {
         const mpesaBody = req.body;
-        console.log(mpesaBody, 'mpesabody')
-        
-        const stkCallback = mpesaBody.Body.stkCallback;
-        console.log(stkCallback, 'stkCallback')
-        const resultCode = stkCallback.ResultCode;
-        console.log(resultCode, 'resultCode')
+        console.log('Mpesa Callback Body:', mpesaBody);
+
+        // Use optional chaining to handle potential undefined properties
+        const stkCallback = mpesaBody?.Body?.stkCallback;
+        console.log('Stk Callback:', stkCallback);
+
+        // Use optional chaining for ResultCode
+        const resultCode = stkCallback?.ResultCode;
+        console.log('Result Code:', resultCode);
 
         if (resultCode === 0) {
             // Payment successful
-            const merchantRequestID = stkCallback.MerchantRequestID;
-            const checkoutRequestID = stkCallback.CheckoutRequestID;
+            const merchantRequestID = stkCallback?.MerchantRequestID;
+            const checkoutRequestID = stkCallback?.CheckoutRequestID;
 
             await updateInvoiceByMpesaIDs(merchantRequestID, checkoutRequestID, { status: 'confirmed', mpesaResponseCallback: mpesaBody });
 
             return res.status(200).json({ message: 'Payment successful', merchantRequestID, checkoutRequestID });
         } else {
             // Payment failed
-            const errorMessage = stkCallback.ResultDesc;
+            const errorMessage = stkCallback?.ResultDesc;
 
             // Handle the failed payment, log the error, etc.
             console.error('Mpesa Payment Failed:', errorMessage);
@@ -39,6 +41,7 @@ mpesaRouter.post('/callback', async (req: Request, res: Response, next: NextFunc
         return res.status(500).json({ error: 'Internal server error' });
     }
 });
+
 
 mpesaRouter.post('/initiate-payment', requireUser, async (req: Request, res: Response, next: NextFunction) => {
     try {
