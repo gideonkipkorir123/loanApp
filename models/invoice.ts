@@ -22,7 +22,7 @@ const invoiceSchema = new Schema({
                 unique: true,
             },
             CheckoutRequestID: {
-                type: Number,
+                type: String,
                 required: true,
                 unique: true,
             },

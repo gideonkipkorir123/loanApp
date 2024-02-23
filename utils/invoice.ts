@@ -12,6 +12,7 @@ const createInvoice = async (data: any) => {
 };
 
 
+
 const updateInvoiceByMpesaIDs = async (merchantRequestId: string, checkoutRequestId: string, data: any) => {
     try {
         const updatedInvoice = await Invoice.findOneAndUpdate(
@@ -19,7 +20,7 @@ const updateInvoiceByMpesaIDs = async (merchantRequestId: string, checkoutReques
                 'mpesaResponse.MerchantRequestID': merchantRequestId,
                 'mpesaResponse.CheckoutRequestID': checkoutRequestId,
             },
-            { $set: { status: data.status }, mpesaResponseCallback: data.mpesaResponseCallback  },
+            { $set: { status: data.status }, mpesaResponseCallback: data.mpesaResponseCallback },
             { new: true }
         );
 
@@ -78,8 +79,8 @@ export default updateInvoiceByMpesaIDs;
 
 export {
     createInvoice,
-//     getAllInvoices,
-//     getInvoiceById,
-//     updateInvoiceById,
+    //     getAllInvoices,
+    //     getInvoiceById,
+    //     updateInvoiceById,
     // deleteInvoiceById,
 };

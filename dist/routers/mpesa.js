@@ -64,7 +64,7 @@ mpesaRouter.post('/callback', async (req, res, next) => {
     }
 });
 mpesaRouter.post('/initiate-payment', requireUser_1.requireUser, async (req, res, next) => {
-    var _a, _b;
+    var _a, _b, _c;
     try {
         const { amount, phoneNumber } = req.body;
         const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
@@ -108,7 +108,7 @@ mpesaRouter.post('/initiate-payment', requireUser_1.requireUser, async (req, res
     }
     catch (error) {
         console.error('Error initiating payment:', ((_b = error.response) === null || _b === void 0 ? void 0 : _b.data) || error.message);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(((_c = error.response) === null || _c === void 0 ? void 0 : _c.status) || 500).json({ error: 'Internal Server Error' });
         next(error);
     }
 });

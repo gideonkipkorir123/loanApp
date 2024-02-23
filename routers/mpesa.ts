@@ -42,7 +42,6 @@ mpesaRouter.post('/callback', async (req: Request, res: Response, next: NextFunc
     }
 });
 
-
 mpesaRouter.post('/initiate-payment', requireUser, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { amount, phoneNumber } = req.body;
@@ -102,10 +101,9 @@ mpesaRouter.post('/initiate-payment', requireUser, async (req: Request, res: Res
         next();
     } catch (error: any) {
         console.error('Error initiating payment:', error.response?.data || error.message);
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(error.response?.status || 500).json({ error: 'Internal Server Error' });
         next(error);
     }
-
 });
 
 export default mpesaRouter;

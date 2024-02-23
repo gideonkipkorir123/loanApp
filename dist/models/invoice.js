@@ -46,7 +46,7 @@ const invoiceSchema = new mongoose_1.Schema({
                 unique: true,
             },
             CheckoutRequestID: {
-                type: Number,
+                type: String,
                 required: true,
                 unique: true,
             },
