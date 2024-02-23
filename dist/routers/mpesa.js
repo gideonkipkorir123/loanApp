@@ -39,10 +39,8 @@ mpesaRouter.post('/callback', async (req, res) => {
         console.log('Mpesa Callback Body:', mpesaBody);
         // Use optional chaining to handle potential undefined properties
         const stkCallback = (_a = mpesaBody === null || mpesaBody === void 0 ? void 0 : mpesaBody.Body) === null || _a === void 0 ? void 0 : _a.stkCallback;
-        console.log('Stk Callback:', stkCallback);
         // Use optional chaining for ResultCode
         const resultCode = stkCallback === null || stkCallback === void 0 ? void 0 : stkCallback.ResultCode;
-        console.log('Result Code:', resultCode);
         if (resultCode === 0) {
             // Payment successful
             const merchantRequestID = stkCallback === null || stkCallback === void 0 ? void 0 : stkCallback.MerchantRequestID;
