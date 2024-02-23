@@ -9,14 +9,13 @@ const mpesaRouter = express.Router();
 
 mpesaRouter.post('/callback', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const mpesaBody = req.body;
-
-        // if (!mpesaBody || !mpesaBody.Body || !mpesaBody.Body.stkCallback) {
-        //     return res.status(400).json({ error: 'Invalid Mpesa callback payload' });
-        // }
-
+        const mpesaBody = req.body.Body;
+        console.log(mpesaBody, 'mpesabody')
+        
         const stkCallback = mpesaBody.Body.stkCallback;
+        console.log(stkCallback, 'stkCallback')
         const resultCode = stkCallback.ResultCode;
+        console.log(resultCode, 'resultCode')
 
         if (resultCode === 0) {
             // Payment successful
