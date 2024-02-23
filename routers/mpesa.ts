@@ -8,30 +8,40 @@ import { requireUser } from "../middleware/requireUser";
 const mpesaRouter = express.Router();
 
 mpesaRouter.post('/callback', async (req: Request, res: Response, next: NextFunction) => {
-    const mpesaBody = req.body.Body
-    console.log(req.body, 'req.body');
-    
-    console.log(mpesaBody, 'Body');
-    console.log(mpesaBody.stkCallback, 'stkCallback');
-    console.log(mpesaBody.stkCallback.Callback, 'stkCallback Callback');
-    console.log(mpesaBody.stkCallback.Callback.CallbackMetadata, 'stkCallback Callback CallbackMetadata');
-    console.log(mpesaBody.stkCallback.Callback.CallbackMetadata.item, 'stkCallback Callback CallbackMetadata item');
-    const MerchantRequestID = req.body.Body.stkCallback.MerchantRequestID
+    try {
+        const mpesaBody = req.body.Body;
+        console.log(req.body, 'req.body');
 
-    const CheckoutRequestID = req.body.Body.stkCallback.CheckoutRequestID
-    const ResultCode = req.body.Body.stkCallback.ResultCode
+        console.log(mpesaBody, 'Body');
+        console.log(mpesaBody.stkCallback, 'stkCallback');
+        console.log(mpesaBody.stkCallback.Callback, 'stkCallback Callback');
+        console.log(mpesaBody.stkCallback.Callback.CallbackMetadata, 'stkCallback Callback CallbackMetadata');
+        console.log(mpesaBody.stkCallback.Callback.CallbackMetadata.item, 'stkCallback Callback CallbackMetadata item');
+        const MerchantRequestID = req.body.Body.stkCallback.MerchantRequestID;
 
-    if (ResultCode === 0){
-        const item = req.body.Body.stkCallback.Callback.CallbackMetadata.item
-        const amount = item[0].Value
-        const MpesaReceiptNumber = item[1].Value
-        // update invoice
-        await updateInvoiceByMpesaIDs(MerchantRequestID, CheckoutRequestID, { status: 'confirmed', mpesaResponseCallback: req.body})
-        // create transaction
-        return res.json(mpesaBody)
+        const CheckoutRequestID = req.body.Body.stkCallback.CheckoutRequestID;
+        const ResultCode = req.body.Body.stkCallback.ResultCode;
+
+        if (ResultCode === 0) {
+            const item = req.body.Body.stkCallback.Callback.CallbackMetadata.item;
+            const amount = item[0].Value;
+            const MpesaReceiptNumber = item[1].Value;
+
+            // update invoice
+            await updateInvoiceByMpesaIDs(MerchantRequestID, CheckoutRequestID, { status: 'confirmed', mpesaResponseCallback: req.body });
+
+            // create transaction
+            return res.json(mpesaBody);
+        } else {
+            // Handle other ResultCode values if needed
+            return res.status(400).json({ error: 'ResultCode is not 0' });
+        }
+    } catch (error) {
+        console.error('Error processing Mpesa callback:', error);
+        return res.status(500).json({ error: 'Internal server error' });
     }
-   
-})
+});
+
 
 mpesaRouter.post('/initiate-payment', requireUser, async (req: Request, res: Response, next: NextFunction) => {
     try {
