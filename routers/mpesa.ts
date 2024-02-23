@@ -9,7 +9,7 @@ const mpesaRouter = express.Router();
 mpesaRouter.post('/callback', async (req: Request, res: Response) => {
     try {
         const mpesaBody = req.body;
-        console.log('Mpesa Callback Body:::', mpesaBody);
+        console.log('Mpesa Callback Body:', mpesaBody);
 
         // Use optional chaining to handle potential undefined properties
         const stkCallback = mpesaBody?.Body?.stkCallback;
@@ -93,7 +93,8 @@ mpesaRouter.post('/initiate-payment', requireUser, async (req: Request, res: Res
                 },
             }
         );
-
+        // create invoice
+        await createInvoice({ phoneNumber, user: userId, amount, mpesaResponse: data });
 
         res.status(200).json(data);
 
