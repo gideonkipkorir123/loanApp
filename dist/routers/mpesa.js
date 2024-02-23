@@ -34,28 +34,25 @@ const requireUser_1 = require("../middleware/requireUser");
 const mpesaRouter = express_1.default.Router();
 mpesaRouter.post('/callback', async (req, res, next) => {
     try {
-        const mpesaBody = req.body.Body;
-        console.log(req.body, 'req.body');
-        console.log(mpesaBody, 'Body');
-        console.log(mpesaBody.stkCallback, 'stkCallback');
-        console.log(mpesaBody.stkCallback.Callback, 'stkCallback Callback');
-        console.log(mpesaBody.stkCallback.Callback.CallbackMetadata, 'stkCallback Callback CallbackMetadata');
-        console.log(mpesaBody.stkCallback.Callback.CallbackMetadata.item, 'stkCallback Callback CallbackMetadata item');
-        const MerchantRequestID = req.body.Body.stkCallback.MerchantRequestID;
-        const CheckoutRequestID = req.body.Body.stkCallback.CheckoutRequestID;
-        const ResultCode = req.body.Body.stkCallback.ResultCode;
-        if (ResultCode === 0) {
-            const item = req.body.Body.stkCallback.Callback.CallbackMetadata.item;
-            const amount = item[0].Value;
-            const MpesaReceiptNumber = item[1].Value;
-            // update invoice
-            await (0, invoice_1.default)(MerchantRequestID, CheckoutRequestID, { status: 'confirmed', mpesaResponseCallback: req.body });
-            // create transaction
-            return res.json(mpesaBody);
+        const mpesaBody = req.body;
+        // if (!mpesaBody || !mpesaBody.Body || !mpesaBody.Body.stkCallback) {
+        //     return res.status(400).json({ error: 'Invalid Mpesa callback payload' });
+        // }
+        const stkCallback = mpesaBody.Body.stkCallback;
+        const resultCode = stkCallback.ResultCode;
+        if (resultCode === 0) {
+            // Payment successful
+            const merchantRequestID = stkCallback.MerchantRequestID;
+            const checkoutRequestID = stkCallback.CheckoutRequestID;
+            await (0, invoice_1.default)(merchantRequestID, checkoutRequestID, { status: 'confirmed', mpesaResponseCallback: mpesaBody });
+            return res.status(200).json({ message: 'Payment successful', merchantRequestID, checkoutRequestID });
         }
         else {
-            // Handle other ResultCode values if needed
-            return res.status(400).json({ error: 'ResultCode is not 0' });
+            // Payment failed
+            const errorMessage = stkCallback.ResultDesc;
+            // Handle the failed payment, log the error, etc.
+            console.error('Mpesa Payment Failed:', errorMessage);
+            return res.status(400).json({ error: 'Payment failed', errorMessage });
         }
     }
     catch (error) {
@@ -64,9 +61,10 @@ mpesaRouter.post('/callback', async (req, res, next) => {
     }
 });
 mpesaRouter.post('/initiate-payment', requireUser_1.requireUser, async (req, res, next) => {
-    var _a, _b, _c;
+    var _a, _b;
     try {
         const { amount, phoneNumber } = req.body;
+        // Validate and sanitize user inputs
         const userId = (_a = req.user) === null || _a === void 0 ? void 0 : _a._id;
         const consumerKey = process.env.MPESA_CUSTOMER_CONSUMER_KEY;
         const consumerSecret = process.env.MPESA_CUSTOMER_CONSUMER_SECRET;
@@ -108,8 +106,8 @@ mpesaRouter.post('/initiate-payment', requireUser_1.requireUser, async (req, res
     }
     catch (error) {
         console.error('Error initiating payment:', ((_b = error.response) === null || _b === void 0 ? void 0 : _b.data) || error.message);
-        res.status(((_c = error.response) === null || _c === void 0 ? void 0 : _c.status) || 500).json({ error: 'Internal Server Error' });
-        next(error);
+        // Provide a more detailed error message or handle specific error cases
+        return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 exports.default = mpesaRouter;

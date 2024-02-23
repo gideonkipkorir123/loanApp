@@ -9,34 +9,33 @@ const mpesaRouter = express.Router();
 
 mpesaRouter.post('/callback', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const mpesaBody = req.body.Body;
-        console.log(req.body, 'req.body');
+        const mpesaBody = req.body;
 
-        console.log(mpesaBody, 'Body');
-        console.log(mpesaBody.stkCallback, 'stkCallback');
-        console.log(mpesaBody.stkCallback.Callback, 'stkCallback Callback');
-        console.log(mpesaBody.stkCallback.Callback.CallbackMetadata, 'stkCallback Callback CallbackMetadata');
-        console.log(mpesaBody.stkCallback.Callback.CallbackMetadata.item, 'stkCallback Callback CallbackMetadata item');
-        const MerchantRequestID = req.body.Body.stkCallback.MerchantRequestID;
+        // if (!mpesaBody || !mpesaBody.Body || !mpesaBody.Body.stkCallback) {
+        //     return res.status(400).json({ error: 'Invalid Mpesa callback payload' });
+        // }
 
-        const CheckoutRequestID = req.body.Body.stkCallback.CheckoutRequestID;
-        const ResultCode = req.body.Body.stkCallback.ResultCode;
+        const stkCallback = mpesaBody.Body.stkCallback;
+        const resultCode = stkCallback.ResultCode;
 
-        if (ResultCode === 0) {
-            const item = req.body.Body.stkCallback.Callback.CallbackMetadata.item;
-            const amount = item[0].Value;
-            const MpesaReceiptNumber = item[1].Value;
+        if (resultCode === 0) {
+            // Payment successful
+            const merchantRequestID = stkCallback.MerchantRequestID;
+            const checkoutRequestID = stkCallback.CheckoutRequestID;
 
-            // update invoice
-            await updateInvoiceByMpesaIDs(MerchantRequestID, CheckoutRequestID, { status: 'confirmed', mpesaResponseCallback: req.body });
+            await updateInvoiceByMpesaIDs(merchantRequestID, checkoutRequestID, { status: 'confirmed', mpesaResponseCallback: mpesaBody });
 
-            // create transaction
-            return res.json(mpesaBody);
+            return res.status(200).json({ message: 'Payment successful', merchantRequestID, checkoutRequestID });
         } else {
-            // Handle other ResultCode values if needed
-            return res.status(400).json({ error: 'ResultCode is not 0' });
+            // Payment failed
+            const errorMessage = stkCallback.ResultDesc;
+
+            // Handle the failed payment, log the error, etc.
+            console.error('Mpesa Payment Failed:', errorMessage);
+
+            return res.status(400).json({ error: 'Payment failed', errorMessage });
         }
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error processing Mpesa callback:', error);
         return res.status(500).json({ error: 'Internal server error' });
     }
@@ -45,14 +44,16 @@ mpesaRouter.post('/callback', async (req: Request, res: Response, next: NextFunc
 mpesaRouter.post('/initiate-payment', requireUser, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { amount, phoneNumber } = req.body;
-        const userId = req.user?._id
+        // Validate and sanitize user inputs
+
+        const userId = req.user?._id;
         const consumerKey = process.env.MPESA_CUSTOMER_CONSUMER_KEY;
         const consumerSecret = process.env.MPESA_CUSTOMER_CONSUMER_SECRET;
         const lipaNaMpesaOnlinePasskey = process.env.MPESA_CUSTOMER_PASSKEY as string;
         const lipaNaMpesaOnlineShortcode = Number(process.env.MPESA_CUSTOMER_SHORT_CODE);
         const lipaNaMpesaOnlineCallbackUrl = `${process.env.BASE_URL}/mpesa/callback`;
 
-        const PartyB = process.env.MPESA_PARTYB
+        const PartyB = process.env.MPESA_PARTYB;
 
         // Generate token for authorization
         const auth = Buffer.from(`${consumerKey}:${consumerSecret}`).toString('base64');
@@ -60,7 +61,6 @@ mpesaRouter.post('/initiate-payment', requireUser, async (req: Request, res: Res
         const timestamp = date.format('YYYYMMDDhhmmss')
 
         const password = Buffer.from(`${lipaNaMpesaOnlineShortcode}${lipaNaMpesaOnlinePasskey}${timestamp}`).toString('base64');
-
 
         const { data: { access_token: accessToken } } = await axios.get(
             'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials',
@@ -94,15 +94,16 @@ mpesaRouter.post('/initiate-payment', requireUser, async (req: Request, res: Res
             }
         );
         // create invoice
-        await createInvoice({ phoneNumber, user: userId, amount, mpesaResponse: data })
+        await createInvoice({ phoneNumber, user: userId, amount, mpesaResponse: data });
 
         res.status(200).json(data);
 
         next();
     } catch (error: any) {
         console.error('Error initiating payment:', error.response?.data || error.message);
-        res.status(error.response?.status || 500).json({ error: 'Internal Server Error' });
-        next(error);
+
+        // Provide a more detailed error message or handle specific error cases
+        return res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
