@@ -9,7 +9,7 @@ const mpesaRouter = express.Router();
 
 mpesaRouter.post('/callback', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const mpesaBody = req.body.Body;
+        const mpesaBody = req.body;
         console.log(mpesaBody, 'mpesabody')
         
         const stkCallback = mpesaBody.Body.stkCallback;

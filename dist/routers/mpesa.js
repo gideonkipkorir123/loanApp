@@ -34,7 +34,7 @@ const requireUser_1 = require("../middleware/requireUser");
 const mpesaRouter = express_1.default.Router();
 mpesaRouter.post('/callback', async (req, res, next) => {
     try {
-        const mpesaBody = req.body.Body;
+        const mpesaBody = req.body;
         console.log(mpesaBody, 'mpesabody');
         const stkCallback = mpesaBody.Body.stkCallback;
         console.log(stkCallback, 'stkCallback');
