@@ -26,6 +26,11 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
 // Create the Transaction schema
 const transactionSchema = new mongoose_1.Schema({
+    user: {
+        type: mongoose_1.Schema.Types.ObjectId,
+        required: true,
+        ref: 'User',
+    },
     invoice: {
         type: mongoose_1.Schema.Types.ObjectId,
         required: true,

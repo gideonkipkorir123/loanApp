@@ -19,14 +19,14 @@ mpesaRouter.post('/callback', async (req: Request, res: Response) => {
         if (resultCode === 0) {
             const merchantRequestID = stkCallback?.MerchantRequestID;
             const checkoutRequestID = stkCallback?.CheckoutRequestID;
-            const CallbackMetadata = stkCallback?.CallbackMetadata;
-            const Item = CallbackMetadata?.Item;
+            const CallbackMetadata = await stkCallback?.CallbackMetadata;
+            const Item = await CallbackMetadata?.Item;
 
             // Retrieve the invoice
             const invoice = await Invoice.findOne({
                 'mpesaResponse.MerchantRequestID': merchantRequestID,
                 'mpesaResponse.CheckoutRequestID': checkoutRequestID,
-            }).populate('user');
+            }).populate('user'); // Populate the 'user' field in the invoice
 
             if (!invoice) {
                 throw new Error('Invoice not found');
@@ -38,10 +38,8 @@ mpesaRouter.post('/callback', async (req: Request, res: Response) => {
             // Update the invoice
             await updateInvoiceByMpesaIDs(merchantRequestID, checkoutRequestID, { status: 'confirmed', mpesaResponseCallback: mpesaBody });
 
-            if (CallbackMetadata && Item) {
-                // Create a transaction
-                await createTransaction(userId, "mpesa", { CallbackMetadata, Item });
-            }
+            // Create a transaction with the retrieved invoice and userId
+            await createTransaction(userId, "mpesa", { invoice: invoice._id, CallbackMetadata, Item });
 
             return res.status(200).json({ message: 'Payment successful', merchantRequestID, checkoutRequestID, userId });
         } else {
@@ -57,6 +55,7 @@ mpesaRouter.post('/callback', async (req: Request, res: Response) => {
         return res.status(500).json({ error: 'Internal server error' });
     }
 });
+
 
 
 mpesaRouter.post('/initiate-payment', requireUser, async (req: Request, res: Response, next: NextFunction) => {
