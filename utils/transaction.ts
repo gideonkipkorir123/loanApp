@@ -1,15 +1,14 @@
 import { ObjectId } from 'mongoose';
 import TransactionModel from '../models/transaction';
+import Invoice from '../models/invoice';
 
 // Create a new transaction
-const createTransaction = async (userId: string, paymentType: string, paymentDetails: any): Promise<any> => {
+const createTransaction = async (userId: string, paymentType: string,invoiceId: string): Promise<any> => {
     try {
         const newTransaction = new TransactionModel({
             user: userId,
-            paymentMethod: {
-                type: paymentType,
-                details: paymentDetails,
-            },
+            invoice: Invoice,
+            paymentType
         });
 
         const savedTransaction = await newTransaction.save();

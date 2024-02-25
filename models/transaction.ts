@@ -19,9 +19,6 @@ const transactionSchema = new Schema(
                 enum: ['mpesa', 'credit_card', 'bank_transfer'],
                 required: true,
             },
-            details: {
-                type: Schema.Types.Mixed, 
-            },
         },
     },
     { timestamps: true } 

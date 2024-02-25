@@ -24,10 +24,13 @@ mpesaRouter.post('/callback', async (req: Request, res: Response) => {
             const invoice = await updateInvoiceByMpesaIDs(merchantRequestID, checkoutRequestID, { status: 'confirmed', mpesaResponseCallback: mpesaBody });
             const userId: string = (invoice.user as any)?._id?.toString();
 
-            // Create a transaction with the retrieved invoice and userId
-            await createTransaction(userId, "mpesa", invoice._id);
+            // Convert ObjectId to string
+            const invoiceId: string = invoice._id?.toString();
 
-            return res.status(200).json({ message: 'Payment successful', merchantRequestID, checkoutRequestID, userId });
+            // Create a transaction with the retrieved invoice and userId
+            await createTransaction(userId, "mpesa", invoiceId);
+
+            return res.status(200).json({ message: 'Payment successful', merchantRequestID, checkoutRequestID });
         } else {
             const errorMessage = stkCallback?.ResultDesc;
 
@@ -41,10 +44,6 @@ mpesaRouter.post('/callback', async (req: Request, res: Response) => {
         return res.status(500).json({ error: 'Internal server error' });
     }
 });
-
-
-
-
 
 mpesaRouter.post('/initiate-payment', requireUser, async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -69,7 +68,6 @@ mpesaRouter.post('/initiate-payment', requireUser, async (req: Request, res: Res
 
         const { data: { access_token: accessToken } } = await axios.get(
             'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials',
-
             {
                 headers: {
                     Authorization: `Basic ${auth}`,
@@ -98,6 +96,7 @@ mpesaRouter.post('/initiate-payment', requireUser, async (req: Request, res: Res
                 },
             }
         );
+
         // create invoice
         await createInvoice({ phoneNumber, user: userId, amount, mpesaResponse: data });
 

@@ -42,9 +42,6 @@ const transactionSchema = new mongoose_1.Schema({
             enum: ['mpesa', 'credit_card', 'bank_transfer'],
             required: true,
         },
-        details: {
-            type: mongoose_1.Schema.Types.Mixed,
-        },
     },
 }, { timestamps: true });
 const TransactionModel = mongoose_1.default.model('Transaction', transactionSchema);
