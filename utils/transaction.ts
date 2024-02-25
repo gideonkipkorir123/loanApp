@@ -3,16 +3,23 @@ import TransactionModel from '../models/transaction';
 import Invoice from '../models/invoice';
 
 // Create a new transaction
-const createTransaction = async (userId: string, paymentType: string,invoiceId: string): Promise<any> => {
+// Assuming your createTransaction function looks like this
+const createTransaction = async (userId: string, paymentMethodType: string, invoiceId: string) => {
     try {
-        const newTransaction = new TransactionModel({
+        const transactionData = {
             user: userId,
-            invoice: Invoice,
-            paymentType
-        });
+            invoice: invoiceId,
+            paymentMethod: {
+                type: paymentMethodType,
+                details: {} 
+            },
+        };
 
-        const savedTransaction = await newTransaction.save();
-        return savedTransaction;
+        // Save the transaction
+        const transaction = new TransactionModel(transactionData);
+        await transaction.save();
+
+        console.log('Transaction created successfully');
     } catch (error: any) {
         throw new Error(`Error creating transaction: ${error.message}`);
     }

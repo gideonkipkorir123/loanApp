@@ -8,10 +8,9 @@ const express_1 = __importDefault(require("express"));
 const moment_1 = __importDefault(require("moment"));
 const invoice_1 = require("../utils/invoice");
 const requireUser_1 = require("../middleware/requireUser");
-const transaction_1 = require("../utils/transaction");
 const mpesaRouter = express_1.default.Router();
 mpesaRouter.post('/callback', async (req, res) => {
-    var _a, _b, _c, _d;
+    var _a, _b, _c;
     try {
         const mpesaBody = req.body;
         console.log('Mpesa Callback Body:', mpesaBody);
@@ -23,10 +22,11 @@ mpesaRouter.post('/callback', async (req, res) => {
             // Update the invoice
             const invoice = await (0, invoice_1.updateInvoiceByMpesaIDs)(merchantRequestID, checkoutRequestID, { status: 'confirmed', mpesaResponseCallback: mpesaBody });
             const userId = (_c = (_b = invoice.user) === null || _b === void 0 ? void 0 : _b._id) === null || _c === void 0 ? void 0 : _c.toString();
-            // Convert ObjectId to string
-            const invoiceId = (_d = invoice._id) === null || _d === void 0 ? void 0 : _d.toString();
-            // Create a transaction with the retrieved invoice and userId
-            await (0, transaction_1.createTransaction)(userId, "mpesa", invoiceId);
+            console.log(invoice, 'invoice ');
+            // // Convert ObjectId to string
+            // const invoiceId: string = invoice._id?.toString();
+            // // Create a transaction with the retrieved invoice and userId
+            // await createTransaction(userId, "mpesa", invoiceId);
             return res.status(200).json({ message: 'Payment successful', merchantRequestID, checkoutRequestID });
         }
         else {
