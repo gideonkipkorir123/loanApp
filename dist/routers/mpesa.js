@@ -8,28 +8,40 @@ const express_1 = __importDefault(require("express"));
 const moment_1 = __importDefault(require("moment"));
 const invoice_1 = require("../utils/invoice");
 const requireUser_1 = require("../middleware/requireUser");
+const invoice_2 = __importDefault(require("../models/invoice"));
 const transaction_1 = require("../utils/transaction");
 const mpesaRouter = express_1.default.Router();
 mpesaRouter.post('/callback', async (req, res) => {
-    var _a, _b, _c, _d, _e, _f;
+    var _a;
     try {
         const mpesaBody = req.body;
         console.log('Mpesa Callback Body:', mpesaBody);
-        // Use optional chaining to handle potential undefined properties
         const stkCallback = (_a = mpesaBody === null || mpesaBody === void 0 ? void 0 : mpesaBody.Body) === null || _a === void 0 ? void 0 : _a.stkCallback;
         const resultCode = stkCallback === null || stkCallback === void 0 ? void 0 : stkCallback.ResultCode;
         if (resultCode === 0) {
-            // Payment successful
             const merchantRequestID = stkCallback === null || stkCallback === void 0 ? void 0 : stkCallback.MerchantRequestID;
             const checkoutRequestID = stkCallback === null || stkCallback === void 0 ? void 0 : stkCallback.CheckoutRequestID;
-            const callbackMetaData = (_c = (_b = mpesaBody === null || mpesaBody === void 0 ? void 0 : mpesaBody.Body) === null || _b === void 0 ? void 0 : _b.stkCallback) === null || _c === void 0 ? void 0 : _c.CallbackMetadata;
-            const Item = (_f = (_e = (_d = mpesaBody === null || mpesaBody === void 0 ? void 0 : mpesaBody.Body) === null || _d === void 0 ? void 0 : _d.stkCallback) === null || _e === void 0 ? void 0 : _e.CallbackMetadata) === null || _f === void 0 ? void 0 : _f.Item;
-            await (0, transaction_1.createTransaction)('mpesa', { callbackMetaData, Item });
+            const CallbackMetadata = stkCallback === null || stkCallback === void 0 ? void 0 : stkCallback.CallbackMetadata;
+            const Item = CallbackMetadata === null || CallbackMetadata === void 0 ? void 0 : CallbackMetadata.Item;
+            // Retrieve the invoice
+            const invoice = await invoice_2.default.findOne({
+                'mpesaResponse.MerchantRequestID': merchantRequestID,
+                'mpesaResponse.CheckoutRequestID': checkoutRequestID,
+            }).populate('user');
+            if (!invoice) {
+                throw new Error('Invoice not found');
+            }
+            // Access userId from the populated 'user' field
+            const userId = invoice.user._id; // Assuming _id is the property you want
+            // Update the invoice
             await (0, invoice_1.updateInvoiceByMpesaIDs)(merchantRequestID, checkoutRequestID, { status: 'confirmed', mpesaResponseCallback: mpesaBody });
-            return res.status(200).json({ message: 'Payment successful', merchantRequestID, checkoutRequestID });
+            if (CallbackMetadata && Item) {
+                // Create a transaction
+                await (0, transaction_1.createTransaction)(userId, "mpesa", { CallbackMetadata, Item });
+            }
+            return res.status(200).json({ message: 'Payment successful', merchantRequestID, checkoutRequestID, userId });
         }
         else {
-            // Payment failed
             const errorMessage = stkCallback === null || stkCallback === void 0 ? void 0 : stkCallback.ResultDesc;
             // Handle the failed payment, log the error, etc.
             console.error('Mpesa Payment Failed:', errorMessage);

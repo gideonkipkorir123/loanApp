@@ -1,9 +1,10 @@
 import TransactionModel from '../models/transaction';
 
 // Create a new transaction
-const createTransaction = async ( paymentType: string, paymentDetails: any): Promise<any> => {
+const createTransaction = async (userId: string, paymentType: string, paymentDetails: any): Promise<any> => {
     try {
         const newTransaction = new TransactionModel({
+            user: userId,
             paymentMethod: {
                 type: paymentType,
                 details: paymentDetails,

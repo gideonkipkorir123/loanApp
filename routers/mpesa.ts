@@ -4,6 +4,7 @@ import express from 'express';
 import moment from 'moment'
 import { createInvoice, updateInvoiceByMpesaIDs } from "../utils/invoice";
 import { requireUser } from "../middleware/requireUser";
+import Invoice from "../models/invoice";
 import { createTransaction } from "../utils/transaction";
 
 const mpesaRouter = express.Router();
@@ -12,22 +13,38 @@ mpesaRouter.post('/callback', async (req: Request, res: Response) => {
         const mpesaBody = req.body;
         console.log('Mpesa Callback Body:', mpesaBody);
 
-        // Use optional chaining to handle potential undefined properties
         const stkCallback = mpesaBody?.Body?.stkCallback;
         const resultCode = stkCallback?.ResultCode;
 
-
         if (resultCode === 0) {
-            // Payment successful
             const merchantRequestID = stkCallback?.MerchantRequestID;
             const checkoutRequestID = stkCallback?.CheckoutRequestID;
-            const callbackMetaData = mpesaBody?.Body?.stkCallback?.CallbackMetadata;
-            const Item = mpesaBody?.Body?.stkCallback?.CallbackMetadata?.Item;
-            await createTransaction('mpesa', { callbackMetaData, Item })
+            const CallbackMetadata = stkCallback?.CallbackMetadata;
+            const Item = CallbackMetadata?.Item;
+
+            // Retrieve the invoice
+            const invoice = await Invoice.findOne({
+                'mpesaResponse.MerchantRequestID': merchantRequestID,
+                'mpesaResponse.CheckoutRequestID': checkoutRequestID,
+            }).populate('user');
+
+            if (!invoice) {
+                throw new Error('Invoice not found');
+            }
+
+            // Access userId from the populated 'user' field
+            const userId = (invoice.user as any)._id; // Assuming _id is the property you want
+
+            // Update the invoice
             await updateInvoiceByMpesaIDs(merchantRequestID, checkoutRequestID, { status: 'confirmed', mpesaResponseCallback: mpesaBody });
-            return res.status(200).json({ message: 'Payment successful', merchantRequestID, checkoutRequestID });
+
+            if (CallbackMetadata && Item) {
+                // Create a transaction
+                await createTransaction(userId, "mpesa", { CallbackMetadata, Item });
+            }
+
+            return res.status(200).json({ message: 'Payment successful', merchantRequestID, checkoutRequestID, userId });
         } else {
-            // Payment failed
             const errorMessage = stkCallback?.ResultDesc;
 
             // Handle the failed payment, log the error, etc.

@@ -6,9 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteTransactionById = exports.updateTransactionById = exports.getTransactionsByUser = exports.createTransaction = void 0;
 const transaction_1 = __importDefault(require("../models/transaction"));
 // Create a new transaction
-const createTransaction = async (paymentType, paymentDetails) => {
+const createTransaction = async (userId, paymentType, paymentDetails) => {
     try {
         const newTransaction = new transaction_1.default({
+            user: userId,
             paymentMethod: {
                 type: paymentType,
                 details: paymentDetails,

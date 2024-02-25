@@ -1,6 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 
-const invoiceSchema = new Schema({
+const InvoiceSchema = new Schema({
     user: {
         type: Schema.Types.ObjectId,
         required: true,
@@ -51,6 +51,6 @@ const invoiceSchema = new Schema({
     },
 });
 
-const invoice = mongoose.model('Invoice', invoiceSchema);
+const Invoice = mongoose.model('Invoice', InvoiceSchema);
 
-export default invoice;
+export default Invoice;
