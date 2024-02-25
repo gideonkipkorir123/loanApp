@@ -8,11 +8,10 @@ const express_1 = __importDefault(require("express"));
 const moment_1 = __importDefault(require("moment"));
 const invoice_1 = require("../utils/invoice");
 const requireUser_1 = require("../middleware/requireUser");
-const invoice_2 = __importDefault(require("../models/invoice"));
 const transaction_1 = require("../utils/transaction");
 const mpesaRouter = express_1.default.Router();
 mpesaRouter.post('/callback', async (req, res) => {
-    var _a;
+    var _a, _b, _c;
     try {
         const mpesaBody = req.body;
         console.log('Mpesa Callback Body:', mpesaBody);
@@ -21,22 +20,11 @@ mpesaRouter.post('/callback', async (req, res) => {
         if (resultCode === 0) {
             const merchantRequestID = stkCallback === null || stkCallback === void 0 ? void 0 : stkCallback.MerchantRequestID;
             const checkoutRequestID = stkCallback === null || stkCallback === void 0 ? void 0 : stkCallback.CheckoutRequestID;
-            const CallbackMetadata = await (stkCallback === null || stkCallback === void 0 ? void 0 : stkCallback.CallbackMetadata);
-            const Item = await (CallbackMetadata === null || CallbackMetadata === void 0 ? void 0 : CallbackMetadata.Item);
-            // Retrieve the invoice
-            const invoice = await invoice_2.default.findOne({
-                'mpesaResponse.MerchantRequestID': merchantRequestID,
-                'mpesaResponse.CheckoutRequestID': checkoutRequestID,
-            }).populate('user'); // Populate the 'user' field in the invoice
-            if (!invoice) {
-                throw new Error('Invoice not found');
-            }
-            // Access userId from the populated 'user' field
-            const userId = invoice.user._id; // Assuming _id is the property you want
             // Update the invoice
-            await (0, invoice_1.updateInvoiceByMpesaIDs)(merchantRequestID, checkoutRequestID, { status: 'confirmed', mpesaResponseCallback: mpesaBody });
+            const invoice = await (0, invoice_1.updateInvoiceByMpesaIDs)(merchantRequestID, checkoutRequestID, { status: 'confirmed', mpesaResponseCallback: mpesaBody });
+            const userId = (_c = (_b = invoice.user) === null || _b === void 0 ? void 0 : _b._id) === null || _c === void 0 ? void 0 : _c.toString();
             // Create a transaction with the retrieved invoice and userId
-            await (0, transaction_1.createTransaction)(userId, "mpesa", { invoice: invoice._id, CallbackMetadata, Item });
+            await (0, transaction_1.createTransaction)(userId, "mpesa", invoice._id);
             return res.status(200).json({ message: 'Payment successful', merchantRequestID, checkoutRequestID, userId });
         }
         else {

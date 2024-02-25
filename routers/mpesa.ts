@@ -8,6 +8,7 @@ import Invoice from "../models/invoice";
 import { createTransaction } from "../utils/transaction";
 
 const mpesaRouter = express.Router();
+
 mpesaRouter.post('/callback', async (req: Request, res: Response) => {
     try {
         const mpesaBody = req.body;
@@ -19,27 +20,12 @@ mpesaRouter.post('/callback', async (req: Request, res: Response) => {
         if (resultCode === 0) {
             const merchantRequestID = stkCallback?.MerchantRequestID;
             const checkoutRequestID = stkCallback?.CheckoutRequestID;
-            const CallbackMetadata = await stkCallback?.CallbackMetadata;
-            const Item = await CallbackMetadata?.Item;
-
-            // Retrieve the invoice
-            const invoice = await Invoice.findOne({
-                'mpesaResponse.MerchantRequestID': merchantRequestID,
-                'mpesaResponse.CheckoutRequestID': checkoutRequestID,
-            }).populate('user'); // Populate the 'user' field in the invoice
-
-            if (!invoice) {
-                throw new Error('Invoice not found');
-            }
-
-            // Access userId from the populated 'user' field
-            const userId = (invoice.user as any)._id; // Assuming _id is the property you want
-
             // Update the invoice
-            await updateInvoiceByMpesaIDs(merchantRequestID, checkoutRequestID, { status: 'confirmed', mpesaResponseCallback: mpesaBody });
+            const invoice = await updateInvoiceByMpesaIDs(merchantRequestID, checkoutRequestID, { status: 'confirmed', mpesaResponseCallback: mpesaBody });
+            const userId: string = (invoice.user as any)?._id?.toString();
 
             // Create a transaction with the retrieved invoice and userId
-            await createTransaction(userId, "mpesa", { invoice: invoice._id, CallbackMetadata, Item });
+            await createTransaction(userId, "mpesa", invoice._id);
 
             return res.status(200).json({ message: 'Payment successful', merchantRequestID, checkoutRequestID, userId });
         } else {
@@ -55,6 +41,8 @@ mpesaRouter.post('/callback', async (req: Request, res: Response) => {
         return res.status(500).json({ error: 'Internal server error' });
     }
 });
+
+
 
 
 

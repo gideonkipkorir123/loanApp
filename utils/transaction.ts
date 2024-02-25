@@ -1,3 +1,4 @@
+import { ObjectId } from 'mongoose';
 import TransactionModel from '../models/transaction';
 
 // Create a new transaction
