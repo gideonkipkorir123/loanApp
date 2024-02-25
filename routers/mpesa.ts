@@ -2,8 +2,9 @@ import axios from "axios";
 import { NextFunction, Request, Response } from "express";
 import express from 'express';
 import moment from 'moment'
-import {createInvoice, updateInvoiceByMpesaIDs} from "../utils/invoice";
+import { createInvoice, updateInvoiceByMpesaIDs } from "../utils/invoice";
 import { requireUser } from "../middleware/requireUser";
+import { createTransaction } from "../utils/transaction";
 
 const mpesaRouter = express.Router();
 mpesaRouter.post('/callback', async (req: Request, res: Response) => {
@@ -13,17 +14,17 @@ mpesaRouter.post('/callback', async (req: Request, res: Response) => {
 
         // Use optional chaining to handle potential undefined properties
         const stkCallback = mpesaBody?.Body?.stkCallback;
-
-        // Use optional chaining for ResultCode
         const resultCode = stkCallback?.ResultCode;
+
 
         if (resultCode === 0) {
             // Payment successful
             const merchantRequestID = stkCallback?.MerchantRequestID;
             const checkoutRequestID = stkCallback?.CheckoutRequestID;
-
+            const callbackMetaData = mpesaBody?.Body?.stkCallback?.CallbackMetadata;
+            const Item = mpesaBody?.Body?.stkCallback?.CallbackMetadata?.Item;
+            await createTransaction('mpesa', { callbackMetaData, Item })
             await updateInvoiceByMpesaIDs(merchantRequestID, checkoutRequestID, { status: 'confirmed', mpesaResponseCallback: mpesaBody });
-
             return res.status(200).json({ message: 'Payment successful', merchantRequestID, checkoutRequestID });
         } else {
             // Payment failed
@@ -46,7 +47,7 @@ mpesaRouter.post('/initiate-payment', requireUser, async (req: Request, res: Res
         const { amount, phoneNumber } = req.body;
         // Validate and sanitize user inputs
 
-        const userId = req.user?._id;
+        const userId = req.user?._id as string;
         const consumerKey = process.env.MPESA_CUSTOMER_CONSUMER_KEY;
         const consumerSecret = process.env.MPESA_CUSTOMER_CONSUMER_SECRET;
         const lipaNaMpesaOnlinePasskey = process.env.MPESA_CUSTOMER_PASSKEY as string;
