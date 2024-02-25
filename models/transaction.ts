@@ -6,22 +6,21 @@ const transactionSchema = new Schema(
         user: {
             type: Schema.Types.ObjectId,
             required: true,
-            ref: 'User', 
+            ref: 'User',
         },
         invoice: {
             type: Schema.Types.ObjectId,
             required: true,
-            ref: 'Invoice', 
+            ref: 'Invoice',
         },
-        paymentMethod: {
-            type: {
-                type: String,
-                enum: ['mpesa', 'credit_card', 'bank_transfer'],
-                required: true,
-            },
+        paymentType: {
+            type: String,
+            enum: ['mpesa', 'credit_card', 'bank_transfer'],
+            required: true,
         },
+
     },
-    { timestamps: true } 
+    { timestamps: true }
 );
 
 const TransactionModel = mongoose.model('Transaction', transactionSchema);

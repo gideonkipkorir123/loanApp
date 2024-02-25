@@ -6,21 +6,15 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteTransactionById = exports.updateTransactionById = exports.getTransactionsByUser = exports.createTransaction = void 0;
 const transaction_1 = __importDefault(require("../models/transaction"));
 // Create a new transaction
-// Assuming your createTransaction function looks like this
-const createTransaction = async (userId, paymentMethodType, invoiceId) => {
+const createTransaction = async (userId, paymentType, invoiceId) => {
     try {
-        const transactionData = {
+        const newTransaction = new transaction_1.default({
             user: userId,
             invoice: invoiceId,
-            paymentMethod: {
-                type: paymentMethodType,
-                details: {}
-            },
-        };
-        // Save the transaction
-        const transaction = new transaction_1.default(transactionData);
-        await transaction.save();
-        console.log('Transaction created successfully');
+            paymentType
+        });
+        const savedTransaction = await newTransaction.save();
+        return savedTransaction;
     }
     catch (error) {
         throw new Error(`Error creating transaction: ${error.message}`);

@@ -24,11 +24,11 @@ mpesaRouter.post('/callback', async (req: Request, res: Response) => {
             const invoice = await updateInvoiceByMpesaIDs(merchantRequestID, checkoutRequestID, { status: 'confirmed', mpesaResponseCallback: mpesaBody });
             const userId: string = (invoice.user as any)?._id?.toString();
             console.log(invoice, 'invoice ')
-            // // Convert ObjectId to string
-            // const invoiceId: string = invoice._id?.toString();
+            // Convert ObjectId to string
+            const invoiceId: string = invoice._id?.toString();
 
-            // // Create a transaction with the retrieved invoice and userId
-            // await createTransaction(userId, "mpesa", invoiceId);
+            // Create a transaction with the retrieved invoice and userId
+            await createTransaction(userId, "mpesa", invoiceId);
 
             return res.status(200).json({ message: 'Payment successful', merchantRequestID, checkoutRequestID });
         } else {

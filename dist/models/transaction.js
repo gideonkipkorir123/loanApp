@@ -36,12 +36,10 @@ const transactionSchema = new mongoose_1.Schema({
         required: true,
         ref: 'Invoice',
     },
-    paymentMethod: {
-        type: {
-            type: String,
-            enum: ['mpesa', 'credit_card', 'bank_transfer'],
-            required: true,
-        },
+    paymentType: {
+        type: String,
+        enum: ['mpesa', 'credit_card', 'bank_transfer'],
+        required: true,
     },
 }, { timestamps: true });
 const TransactionModel = mongoose_1.default.model('Transaction', transactionSchema);
