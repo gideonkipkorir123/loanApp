@@ -15,19 +15,19 @@ const userSchema = new mongoose_1.default.Schema({
     },
     profileImageURL: {
         type: String,
-        required: true
+        required: false
     },
     frontIdURL: {
         type: String,
-        required: true
+        required: false
     },
     backIdURL: {
         type: String,
-        required: true
+        required: false
     },
     signatureURL: {
         type: String,
-        required: true
+        required: false
     },
     profileImageUpdatedAt: {
         type: Date,

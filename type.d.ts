@@ -20,7 +20,7 @@ export interface UserInterface {
     emailVerified?: boolean;
     signEmailToken?: string;
     role?: string;
-    profileimageURL?: string;
+    profileImageURL?: string;
     frontIdURL?: string;  
     backIdURL?: string;  
     signatureURL?: string;

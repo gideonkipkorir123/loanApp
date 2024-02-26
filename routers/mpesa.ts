@@ -3,12 +3,12 @@ import { NextFunction, Request, Response } from "express";
 import express from 'express';
 import moment from 'moment'
 import { createInvoice, updateInvoiceByMpesaIDs } from "../utils/invoice";
-import { requireUser } from "../middleware/requireUser";
+import { ROLES, authRole, requireUser } from "../middleware/requireUser";
 import Invoice from "../models/invoice";
 import { createTransaction } from "../utils/transaction";
 
 const mpesaRouter = express.Router();
-
+// CUSTOMER TO BUSINESS IMPELEMTATION
 mpesaRouter.post('/callback', async (req: Request, res: Response) => {
     try {
         const mpesaBody = req.body;
@@ -44,8 +44,7 @@ mpesaRouter.post('/callback', async (req: Request, res: Response) => {
         return res.status(500).json({ error: 'Internal server error' });
     }
 });
-
-mpesaRouter.post('/initiate-payment', requireUser, async (req: Request, res: Response, next: NextFunction) => {
+mpesaRouter.post('/c2b', requireUser, async (req: Request, res: Response, next: NextFunction) => {
     try {
         const { amount, phoneNumber } = req.body;
         // Validate and sanitize user inputs
@@ -108,6 +107,83 @@ mpesaRouter.post('/initiate-payment', requireUser, async (req: Request, res: Res
 
         // Provide a more detailed error message or handle specific error cases
         return res.status(500).json({ error: 'Internal Server Error' });
+    }
+});
+// BUSINESS TO CUSTOMER IMPLEMENTATION 
+mpesaRouter.post('/queue', async (req: Request, res: Response) => {
+    try {
+        const body = req.body;
+        console.log('Queue Callback Body:', body);
+        return res.status(200).send('Received');
+    } catch (error) {
+        console.error('Error processing /queue callback:', error);
+        return res.status(500).send('Internal server error');
+    }
+});
+mpesaRouter.post('/ResultURL', async (req: Request, res: Response) => {
+    try {
+        const body = req.body;
+        console.log('ResultURL Callback Body:', body);
+        return res.status(200).send('Received');
+    } catch (error) {
+        console.error('Error processing /ResultURL callback:', error);
+        return res.status(500).send('Internal server error');
+    }
+});
+mpesaRouter.post('/b2c', requireUser, authRole(ROLES.admin), async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const { amount, PartyB } = req.body;
+
+        const consumerKey = process.env.MPESA_CUSTOMER_CONSUMER_KEY;
+        const consumerSecret = process.env.MPESA_CUSTOMER_CONSUMER_SECRET;
+        const QueueTimeOutURL = `${process.env.BASE_URL}/mpesa/queue`;
+        const ResultURL = `${process.env.BASE_URL}/mpesa/ResultURL`;
+        const SecurityCredential = process.env.MPESA_SECURITY_CREDENTIALS;
+        const PartyA = process.env.MPESA_PARTY_A;
+
+        // Generate token for authorization
+        const auth = Buffer.from(`${consumerKey}:${consumerSecret}`).toString('base64');
+        const date = moment()
+        const timestamp = date.format('YYYYMMDDhhmmss');
+
+        const { data: { access_token: accessToken } } = await axios.get(
+            'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials',
+            {
+                headers: {
+                    Authorization: `Basic ${auth}`,
+                },
+            }
+        );
+
+        const { data } = await axios.post(
+            'https://sandbox.safaricom.co.ke/mpesa/b2c/v3/paymentrequest',
+            {
+                SecurityCredential,
+                Timestamp: timestamp,
+                CommandID: "BusinessPayment",
+                Amount: amount,
+                PartyA,
+                PartyB,
+                QueueTimeOutURL,
+                ResultURL,
+                Remarks: "Test remarks",
+                Occasion: "Test occasion"
+            },
+            {
+                headers: {
+                    Authorization: "Bearer " + accessToken
+                },
+            }
+        );
+        const userId = req.user?._id as string;
+        await createInvoice({ PartyB, user: userId, amount, mpesaResponse: data });
+        res.status(200).json(data);
+
+        next();
+    } catch (error: any) {
+        console.error('Error initiating payment:', error.response?.data || error.message);
+
+        return res.status(error.response?.status || 500).json({ error: 'Internal Server Error' });
     }
 });
 
