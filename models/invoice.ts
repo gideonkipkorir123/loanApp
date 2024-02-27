@@ -1,16 +1,34 @@
 import mongoose, { Schema } from 'mongoose';
 
+export interface InvoiceInterface {
+    user?: Schema.Types.ObjectId;
+    phoneNumber?: string;
+    duration?: number,
+    amount?: number;
+    mpesaResponse?: {
+        MerchantRequestID?: string;
+        CheckoutRequestID?: string;
+        ResponseCode?: number;
+        ResponseDescription?: string;
+        CustomerMessage?: string;
+        OriginatorConversationID?: string;
+        ConversationID?: string;
+    };
+    mpesaResponseCallback?: object;
+    status?: 'pending' | 'confirmed';
+}
+
 const InvoiceSchema = new Schema({
     user: {
         type: Schema.Types.ObjectId,
         required: true,
         ref: "User",
     },
-    phoneNumber: {
-        type: String,
+    amount: {
+        type: Number,
         required: true,
     },
-    amount: {
+    duration: {
         type: Number,
         required: true,
     },

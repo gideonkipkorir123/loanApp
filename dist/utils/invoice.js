@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createInvoice = exports.deleteInvoiceByMpesaIDs = exports.updateInvoiceByMpesaIDsc2b = exports.updateInvoiceByMpesaIDsB2c = void 0;
+exports.createInvoice = exports.updateInvoiceByMpesaIDsc2b = exports.updateInvoiceByMpesaIDsB2c = void 0;
 const invoice_1 = __importDefault(require("../models/invoice"));
 // Create a new invoice
 const createInvoice = async (data) => {
@@ -58,19 +58,3 @@ const updateInvoiceByMpesaIDsc2b = async (merchantRequestId, CheckoutRequestID, 
     }
 };
 exports.updateInvoiceByMpesaIDsc2b = updateInvoiceByMpesaIDsc2b;
-const deleteInvoiceByMpesaIDs = async (merchantRequestId, OriginatorConversationID) => {
-    try {
-        const deletedInvoice = await invoice_1.default.findOneAndDelete({
-            "mpesaResponse.MerchantRequestID": merchantRequestId,
-            "mpesaResponse.OriginatorConversationID": OriginatorConversationID,
-        });
-        if (!deletedInvoice) {
-            throw new Error("Invoice not found");
-        }
-        return deletedInvoice;
-    }
-    catch (error) {
-        throw new Error(`Error deleting invoice by Mpesa IDs: ${error.message}`);
-    }
-};
-exports.deleteInvoiceByMpesaIDs = deleteInvoiceByMpesaIDs;

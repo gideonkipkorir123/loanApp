@@ -1,9 +1,19 @@
 import Loan, { LoanInterface } from "../models/loan";
 
 // Create a new loan
-export const createLoan = async (loanData: LoanInterface): Promise<LoanInterface> => {
+export const createLoan = async (invoice: any) => {
     try {
-        const newLoan = new Loan(loanData);
+        const userId: string = (invoice.user as any)?._id?.toString();
+        const amount: number = invoice.amount;
+        const duration: number = invoice.duration;
+
+        const newLoan = new Loan({
+            userId,
+            amount,
+            duration,
+            status: 'approved',
+        });
+
         await newLoan.save();
         return newLoan;
     } catch (error: any) {

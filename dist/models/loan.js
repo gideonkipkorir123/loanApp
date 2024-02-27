@@ -25,9 +25,8 @@ var __importStar = (this && this.__importStar) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importStar(require("mongoose"));
 const loanSchema = new mongoose_1.Schema({
-    invoiceId: {
+    invoice: {
         type: mongoose_1.Schema.Types.ObjectId,
-        required: true,
         ref: "Invoice",
     },
     interestRate: {
@@ -44,6 +43,10 @@ const loanSchema = new mongoose_1.Schema({
         type: Date,
         required: true,
     },
+    returnedAmount: {
+        type: Number,
+        default: 0,
+    },
     endDate: {
         type: Date,
     },
@@ -51,22 +54,25 @@ const loanSchema = new mongoose_1.Schema({
 loanSchema.virtual("remainingTime").get(function () {
     var _a;
     const now = new Date();
-    const remainingMilliseconds = (((_a = this.endDate) === null || _a === void 0 ? void 0 : _a.getTime()) || 0) - now.getTime();
+    const remainingMilliseconds = (((_a = this.get("endDate")) === null || _a === void 0 ? void 0 : _a.getTime()) || 0) - now.getTime();
     if (remainingMilliseconds <= 0) {
         return "Loan expired";
     }
     const remainingDays = Math.ceil(remainingMilliseconds / (1000 * 60 * 60 * 24));
     return `${remainingDays} days remaining`;
 });
-loanSchema.virtual("returnedAmount").get(function () {
-    return this.amount + this.amount * (this.interestRate / 100);
-});
 loanSchema.pre("save", function (next) {
-    if (this.isModified("startDate") || this.isModified("duration")) {
-        const calculatedEndDate = new Date(this.startDate);
-        calculatedEndDate.setDate(calculatedEndDate.getDate() + this.duration);
-        this.endDate = calculatedEndDate;
+    var _a;
+    const now = new Date();
+    if (!this.get("startDate") || this.isNew) {
+        this.set("startDate", now);
     }
+    // Calculate endDate
+    const calculatedEndDate = new Date(this.get("startDate"));
+    calculatedEndDate.setDate(calculatedEndDate.getDate() + (((_a = this.get("endDate")) === null || _a === void 0 ? void 0 : _a.getDate()) || 0));
+    this.set("endDate", calculatedEndDate);
+    // Calculate returnedAmount
+    this.set("returnedAmount", this.get("amount") * (1 + this.get("interestRate") / 100));
     next();
 });
 const Loan = mongoose_1.default.model("Loan", loanSchema);

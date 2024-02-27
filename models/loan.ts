@@ -1,12 +1,8 @@
 import mongoose, { Schema, Document } from "mongoose";
 
-export interface LoanInterface extends Document {
-    userId: mongoose.Types.ObjectId;
-    amount: number;
+export interface LoanInterface  {
     interestRate: number;
-    duration: number;
     status: "pending" | "approved" | "rejected";
-    startDate: Date;
     endDate?: Date;
     remainingTime: string;
     returnedAmount: number;
@@ -14,9 +10,8 @@ export interface LoanInterface extends Document {
 
 const loanSchema: Schema = new Schema(
     {
-        invoiceId: {
+        invoice: {
             type: Schema.Types.ObjectId,
-            required: true,
             ref: "Invoice",
         },
         interestRate: {
@@ -33,6 +28,10 @@ const loanSchema: Schema = new Schema(
             type: Date,
             required: true,
         },
+        returnedAmount: {
+            type: Number,
+            default: 0,
+        },
         endDate: {
             type: Date,
         },
@@ -40,9 +39,9 @@ const loanSchema: Schema = new Schema(
     { timestamps: true }
 );
 
-loanSchema.virtual("remainingTime").get(function (this: LoanInterface) {
+loanSchema.virtual("remainingTime").get(function (this: LoanInterface & Document) {
     const now = new Date();
-    const remainingMilliseconds = (this.endDate?.getTime() || 0) - now.getTime();
+    const remainingMilliseconds = (this.get("endDate")?.getTime() || 0) - now.getTime();
 
     if (remainingMilliseconds <= 0) {
         return "Loan expired";
@@ -52,17 +51,21 @@ loanSchema.virtual("remainingTime").get(function (this: LoanInterface) {
     return `${remainingDays} days remaining`;
 });
 
-
-loanSchema.virtual("returnedAmount").get(function (this: LoanInterface) {
-    return this.amount + this.amount * (this.interestRate / 100);
-});
-
 loanSchema.pre("save", function (this: LoanInterface & Document, next) {
-    if (this.isModified("startDate") || this.isModified("duration")) {
-        const calculatedEndDate = new Date(this.startDate);
-        calculatedEndDate.setDate(calculatedEndDate.getDate() + this.duration);
-        this.endDate = calculatedEndDate;
+    const now = new Date();
+
+    if (!this.get("startDate") || this.isNew) {
+        this.set("startDate", now);
     }
+
+    // Calculate endDate
+    const calculatedEndDate = new Date(this.get("startDate"));
+    calculatedEndDate.setDate(calculatedEndDate.getDate() + (this.get("endDate")?.getDate() || 0));
+    this.set("endDate", calculatedEndDate);
+
+    // Calculate returnedAmount
+    this.set("returnedAmount", this.get("amount") * (1 + this.get("interestRate") / 100));
+
     next();
 });
 

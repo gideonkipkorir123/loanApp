@@ -6,9 +6,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteLoanById = exports.updateLoanById = exports.getLoanById = exports.getAllLoans = exports.createLoan = void 0;
 const loan_1 = __importDefault(require("../models/loan"));
 // Create a new loan
-const createLoan = async (loanData) => {
+const createLoan = async (invoice) => {
+    var _a, _b;
     try {
-        const newLoan = new loan_1.default(loanData);
+        const userId = (_b = (_a = invoice.user) === null || _a === void 0 ? void 0 : _a._id) === null || _b === void 0 ? void 0 : _b.toString();
+        const amount = invoice.amount;
+        const duration = invoice.duration;
+        const newLoan = new loan_1.default({
+            userId,
+            amount,
+            duration,
+            status: 'approved',
+        });
         await newLoan.save();
         return newLoan;
     }

@@ -30,11 +30,11 @@ const InvoiceSchema = new mongoose_1.Schema({
         required: true,
         ref: "User",
     },
-    phoneNumber: {
-        type: String,
+    amount: {
+        type: Number,
         required: true,
     },
-    amount: {
+    duration: {
         type: Number,
         required: true,
     },

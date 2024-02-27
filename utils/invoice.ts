@@ -74,24 +74,5 @@ const updateInvoiceByMpesaIDsc2b = async (
         throw new Error(`Error updating invoice by Mpesa IDs: ${error.message}`);
     }
 };
-const deleteInvoiceByMpesaIDs = async (
-    merchantRequestId: string,
-    OriginatorConversationID: string
-) => {
-    try {
-        const deletedInvoice = await Invoice.findOneAndDelete({
-            "mpesaResponse.MerchantRequestID": merchantRequestId,
-            "mpesaResponse.OriginatorConversationID": OriginatorConversationID,
-        });
 
-        if (!deletedInvoice) {
-            throw new Error("Invoice not found");
-        }
-
-        return deletedInvoice;
-    } catch (error: any) {
-        throw new Error(`Error deleting invoice by Mpesa IDs: ${error.message}`);
-    }
-};
-
-export { updateInvoiceByMpesaIDsc2b, deleteInvoiceByMpesaIDs, createInvoice };
+export { updateInvoiceByMpesaIDsc2b, createInvoice };
