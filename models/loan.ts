@@ -14,23 +14,14 @@ export interface LoanInterface extends Document {
 
 const loanSchema: Schema = new Schema(
     {
-        userId: {
+        invoiceId: {
             type: Schema.Types.ObjectId,
             required: true,
-            ref: "User",
-        },
-        amount: {
-            type: Number,
-            required: true,
-            min: 1000,
+            ref: "Invoice",
         },
         interestRate: {
             type: Number,
             default: 10,
-        },
-        duration: {
-            type: Number,
-            required: true,
         },
         status: {
             type: String,
