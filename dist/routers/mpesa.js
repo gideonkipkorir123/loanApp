@@ -108,6 +108,7 @@ mpesaRouter.post('/ResultURL', async (req, res) => {
     var _a, _b, _c;
     try {
         const body = req.body;
+        console.log(body, "body");
         const Result = body === null || body === void 0 ? void 0 : body.Body;
         const ResultType = Result === null || Result === void 0 ? void 0 : Result.ResultType;
         if (ResultType === 0) {

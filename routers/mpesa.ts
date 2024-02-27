@@ -121,6 +121,7 @@ mpesaRouter.post('/queue', async (req: Request, res: Response) => {
 mpesaRouter.post('/ResultURL', async (req: Request, res: Response) => {
     try {
         const body = req.body;
+        console.log(body, "body")
         const Result = body?.Body;
         const ResultType = Result?.ResultType;
 
@@ -128,7 +129,7 @@ mpesaRouter.post('/ResultURL', async (req: Request, res: Response) => {
             const OriginatorConversationID = Result?.OriginatorConversationID;
             const ConversationID = Result?.ConversationID;
 
-           
+
             if (OriginatorConversationID && ConversationID) {
                 const invoice = await updateInvoiceByMpesaIDsB2c(OriginatorConversationID, ConversationID, { status: "confirmed", body });
                 const userId: string = (invoice.user as any)?._id?.toString();
