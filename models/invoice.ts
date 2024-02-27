@@ -18,28 +18,34 @@ const InvoiceSchema = new Schema({
         type: {
             MerchantRequestID: {
                 type: String,
-                required: true,
-                unique: true,
+
             },
             CheckoutRequestID: {
                 type: String,
-                required: true,
-                unique: true,
+
             },
             ResponseCode: {
                 type: Number,
-                required: true,
+
             },
             ResponseDescription: {
                 type: String,
-                required: true,
+
             },
             CustomerMessage: {
                 type: String,
-                required: true
+
+            },
+            OriginatorConversationID: {
+                type: String,
+
+            },
+            ConversationID: {
+                type: String,
+
             }
         },
-        required: true,
+
     },
     mpesaResponseCallback: {
         type: Object

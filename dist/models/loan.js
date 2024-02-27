@@ -28,11 +28,12 @@ const loanSchema = new mongoose_1.Schema({
     userId: {
         type: mongoose_1.Schema.Types.ObjectId,
         required: true,
-        ref: "User", // Reference to the User model
+        ref: "User",
     },
     amount: {
         type: Number,
         required: true,
+        min: 1000,
     },
     interestRate: {
         type: Number,
@@ -54,16 +55,25 @@ const loanSchema = new mongoose_1.Schema({
     },
     endDate: {
         type: Date,
-        required: true,
     },
 }, { timestamps: true });
-// Add virtual field for remainingTime
-loanSchema.virtual('remainingTime').get(function () {
+loanSchema.virtual("remainingTime").get(function () {
+    var _a;
     const now = new Date();
-    const remainingMilliseconds = this.endDate.getTime() - now.getTime();
-    // Assuming you want to return a string representing remaining time
+    const remainingMilliseconds = (((_a = this.endDate) === null || _a === void 0 ? void 0 : _a.getTime()) || 0) - now.getTime();
+    if (remainingMilliseconds <= 0) {
+        return "Loan expired";
+    }
     const remainingDays = Math.ceil(remainingMilliseconds / (1000 * 60 * 60 * 24));
     return `${remainingDays} days remaining`;
+});
+loanSchema.pre("save", function (next) {
+    if (this.isModified("startDate") || this.isModified("duration")) {
+        const calculatedEndDate = new Date(this.startDate);
+        calculatedEndDate.setDate(calculatedEndDate.getDate() + this.duration);
+        this.endDate = calculatedEndDate;
+    }
+    next();
 });
 const Loan = mongoose_1.default.model("Loan", loanSchema);
 exports.default = Loan;

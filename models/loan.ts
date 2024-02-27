@@ -1,14 +1,14 @@
-import mongoose, { Schema, } from "mongoose";
+import mongoose, { Schema, Document } from "mongoose";
 
-export interface LoanInterface  {
+export interface LoanInterface extends Document {
     userId: mongoose.Types.ObjectId;
     amount: number;
     interestRate: number;
-    duration: number; 
+    duration: number;
     status: "pending" | "approved" | "rejected";
     startDate: Date;
-    endDate: Date;
-    remainingTime: string; 
+    endDate?: Date;
+    remainingTime: string;
 }
 
 const loanSchema: Schema = new Schema(
@@ -16,11 +16,12 @@ const loanSchema: Schema = new Schema(
         userId: {
             type: Schema.Types.ObjectId,
             required: true,
-            ref: "User", // Reference to the User model
+            ref: "User",
         },
         amount: {
             type: Number,
             required: true,
+            min: 1000, 
         },
         interestRate: {
             type: Number,
@@ -42,20 +43,30 @@ const loanSchema: Schema = new Schema(
         },
         endDate: {
             type: Date,
-            required: true,
         },
     },
     { timestamps: true }
 );
 
-// Add virtual field for remainingTime
-loanSchema.virtual('remainingTime').get(function (this: LoanInterface) {
+loanSchema.virtual("remainingTime").get(function (this: LoanInterface) {
     const now = new Date();
-    const remainingMilliseconds = this.endDate.getTime() - now.getTime();
+    const remainingMilliseconds = (this.endDate?.getTime() || 0) - now.getTime();
 
-    // Assuming you want to return a string representing remaining time
+    if (remainingMilliseconds <= 0) {
+        return "Loan expired";
+    }
+
     const remainingDays = Math.ceil(remainingMilliseconds / (1000 * 60 * 60 * 24));
     return `${remainingDays} days remaining`;
+});
+
+loanSchema.pre("save", function (this: LoanInterface & Document, next) {
+    if (this.isModified("startDate") || this.isModified("duration")) {
+        const calculatedEndDate = new Date(this.startDate);
+        calculatedEndDate.setDate(calculatedEndDate.getDate() + this.duration);
+        this.endDate = calculatedEndDate;
+    }
+    next();
 });
 
 const Loan = mongoose.model<LoanInterface>("Loan", loanSchema);

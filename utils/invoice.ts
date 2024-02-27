@@ -1,31 +1,44 @@
-import Invoice from '../models/invoice';
+import Invoice from "../models/invoice";
 
 // Create a new invoice
 const createInvoice = async (data: any) => {
     try {
-        const newInvoice = new Invoice(data);
+        const invoiceData = {
+            CustomerMessage: "Placeholder message",
+            OriginatorConversationID: "PlaceholderOriginatorConversationID",
+            MerchantRequestID: "PlaceholderMerchantRequestID",
+            ...data,
+        };
+
+        const newInvoice = new Invoice(invoiceData);
         const savedInvoice = await newInvoice.save();
         return savedInvoice;
     } catch (error: any) {
         throw new Error(`Error creating invoice: ${error.message}`);
     }
 };
-
-
-
-const updateInvoiceByMpesaIDs = async (merchantRequestId: string, checkoutRequestId: string, data: any) => {
+export const updateInvoiceByMpesaIDsB2c = async (
+    conversationId: string,
+    OriginatorConversationID: string,
+    data: any
+) => {
     try {
         const updatedInvoice = await Invoice.findOneAndUpdate(
             {
-                'mpesaResponse.MerchantRequestID': merchantRequestId,
-                'mpesaResponse.CheckoutRequestID': checkoutRequestId,
+                "mpesaResponse.OriginatorConversationID": OriginatorConversationID,
+                "mpesaResponse.ConversationID": conversationId,
             },
-            { $set: { status: data.status }, mpesaResponseCallback: data.mpesaResponseCallback },
+            {
+                $set: {
+                    status: data.status,
+                },
+                Result: data.Result,
+            },
             { new: true }
         );
 
         if (!updatedInvoice) {
-            throw new Error('Invoice not found');
+            throw new Error("Invoice not found");
         }
 
         return updatedInvoice;
@@ -33,15 +46,46 @@ const updateInvoiceByMpesaIDs = async (merchantRequestId: string, checkoutReques
         throw new Error(`Error updating invoice by Mpesa IDs: ${error.message}`);
     }
 };
-const deleteInvoiceByMpesaIDs = async (merchantRequestId: string, checkoutRequestId: string) => {
+
+const updateInvoiceByMpesaIDsc2b = async (
+    merchantRequestId: string,
+    OriginatorConversationID: string,
+    data: any
+) => {
+    try {
+        const updatedInvoice = await Invoice.findOneAndUpdate(
+            {
+                "mpesaResponse.MerchantRequestID": merchantRequestId,
+                "mpesaResponse.OriginatorConversationID": OriginatorConversationID,
+            },
+            {
+                $set: { status: data.status },
+                mpesaResponseCallback: data.mpesaResponseCallback,
+            },
+            { new: true }
+        );
+
+        if (!updatedInvoice) {
+            throw new Error("Invoice not found");
+        }
+
+        return updatedInvoice;
+    } catch (error: any) {
+        throw new Error(`Error updating invoice by Mpesa IDs: ${error.message}`);
+    }
+};
+const deleteInvoiceByMpesaIDs = async (
+    merchantRequestId: string,
+    OriginatorConversationID: string
+) => {
     try {
         const deletedInvoice = await Invoice.findOneAndDelete({
-            'mpesaResponse.MerchantRequestID': merchantRequestId,
-            'mpesaResponse.CheckoutRequestID': checkoutRequestId,
+            "mpesaResponse.MerchantRequestID": merchantRequestId,
+            "mpesaResponse.OriginatorConversationID": OriginatorConversationID,
         });
 
         if (!deletedInvoice) {
-            throw new Error('Invoice not found');
+            throw new Error("Invoice not found");
         }
 
         return deletedInvoice;
@@ -50,45 +94,4 @@ const deleteInvoiceByMpesaIDs = async (merchantRequestId: string, checkoutReques
     }
 };
 
-export { updateInvoiceByMpesaIDs, deleteInvoiceByMpesaIDs, createInvoice };
-
-
-// // Get all invoices
-// const getAllInvoices = async () => {
-//     try {
-//         const invoices = await Invoice.find();
-//         return invoices;
-//     } catch (error) {
-//         throw new Error(`Error getting invoices: ${error.message}`);
-//     }
-// };
-
-// // Get invoice by ID
-// const getInvoiceById = async (id) => {
-//     try {
-//         const invoice = await Invoice.findById(id);
-//         return invoice;
-//     } catch (error) {
-//         throw new Error(`Error getting invoice by ID: ${error.message}`);
-//     }
-// };
-
-// // Update invoice by ID
-// const updateInvoiceById = async (id, data) => {
-//     try {
-//         const updatedInvoice = await Invoice.findByIdAndUpdate(id, data, { new: true });
-//         return updatedInvoice;
-//     } catch (error) {
-//         throw new Error(`Error updating invoice by ID: ${error.message}`);
-//     }
-// };
-
-// // Delete invoice by ID
-// const deleteInvoiceById = async (id) => {
-//     try {
-//         const deletedInvoice = await Invoice.findByIdAndDelete(id);
-//         return deletedInvoice;
-//     } catch (error) {
-//         throw new Error(`Error deleting invoice by ID: ${error.message}`);
-//     }
-// };
+export { updateInvoiceByMpesaIDsc2b, deleteInvoiceByMpesaIDs, createInvoice };

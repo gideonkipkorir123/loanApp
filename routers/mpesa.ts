@@ -1,10 +1,10 @@
+import { v4 as uuidv4 } from 'uuid';
 import axios from "axios";
 import { NextFunction, Request, Response } from "express";
 import express from 'express';
 import moment from 'moment'
-import { createInvoice, updateInvoiceByMpesaIDs } from "../utils/invoice";
-import { ROLES, authRole, requireUser } from "../middleware/requireUser";
-import Invoice from "../models/invoice";
+import { createInvoice, updateInvoiceByMpesaIDsB2c, updateInvoiceByMpesaIDsc2b } from "../utils/invoice";
+import { requireUser } from "../middleware/requireUser";
 import { createTransaction } from "../utils/transaction";
 
 const mpesaRouter = express.Router();
@@ -21,20 +21,18 @@ mpesaRouter.post('/callback', async (req: Request, res: Response) => {
             const merchantRequestID = stkCallback?.MerchantRequestID;
             const checkoutRequestID = stkCallback?.CheckoutRequestID;
             // Update the invoice
-            const invoice = await updateInvoiceByMpesaIDs(merchantRequestID, checkoutRequestID, { status: 'confirmed', mpesaResponseCallback: mpesaBody });
+            const invoice = await updateInvoiceByMpesaIDsc2b(merchantRequestID, checkoutRequestID, { status: 'confirmed', mpesaResponseCallback: mpesaBody });
             const userId: string = (invoice.user as any)?._id?.toString();
             console.log(invoice, 'invoice ')
             // Convert ObjectId to string
             const invoiceId: string = invoice._id?.toString();
 
-            // Create a transaction with the retrieved invoice and userId
             await createTransaction(userId, "mpesa", invoiceId);
 
             return res.status(200).json({ message: 'Payment successful', merchantRequestID, checkoutRequestID });
         } else {
             const errorMessage = stkCallback?.ResultDesc;
 
-            // Handle the failed payment, log the error, etc.
             console.error('Mpesa Payment Failed:', errorMessage);
 
             return res.status(400).json({ error: 'Payment failed', errorMessage });
@@ -56,7 +54,7 @@ mpesaRouter.post('/c2b', requireUser, async (req: Request, res: Response, next: 
         const lipaNaMpesaOnlineShortcode = Number(process.env.MPESA_CUSTOMER_SHORT_CODE);
         const lipaNaMpesaOnlineCallbackUrl = `${process.env.BASE_URL}/mpesa/callback`;
 
-        const PartyB = process.env.MPESA_PARTYB;
+        const PartyB = process.env.MPESA_PARTY_B;
 
         // Generate token for authorization
         const auth = Buffer.from(`${consumerKey}:${consumerSecret}`).toString('base64');
@@ -123,28 +121,55 @@ mpesaRouter.post('/queue', async (req: Request, res: Response) => {
 mpesaRouter.post('/ResultURL', async (req: Request, res: Response) => {
     try {
         const body = req.body;
-        console.log('ResultURL Callback Body:', body);
+        const Result = body?.Body;
+        const ResultType = Result?.ResultType;
+
+        if (ResultType === 0) {
+            const OriginatorConversationID = Result?.OriginatorConversationID;
+            const ConversationID = Result?.ConversationID;
+
+           
+            if (OriginatorConversationID && ConversationID) {
+                const invoice = await updateInvoiceByMpesaIDsB2c(OriginatorConversationID, ConversationID, { status: "confirmed", body });
+                const userId: string = (invoice.user as any)?._id?.toString();
+                console.log(invoice, 'invoice ');
+                const invoiceId: string = invoice._id?.toString();
+                await createTransaction(userId, "mpesa", invoiceId);
+
+                return res.status(200).json({ message: 'Payment successful', OriginatorConversationID, ConversationID });
+            }
+        }
+
         return res.status(200).send('Received');
     } catch (error) {
         console.error('Error processing /ResultURL callback:', error);
         return res.status(500).send('Internal server error');
     }
 });
-mpesaRouter.post('/b2c', requireUser, authRole(ROLES.admin), async (req: Request, res: Response, next: NextFunction) => {
+
+
+// Function to generate OriginatorConversationID
+function generateOriginatorConversationID() {
+    const uuid = uuidv4();
+    return uuid;
+}
+
+mpesaRouter.post('/b2c', requireUser, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { amount, PartyB } = req.body;
+        const { Amount, PartyB, interestRate, duration, startDate } = req.body;
 
         const consumerKey = process.env.MPESA_CUSTOMER_CONSUMER_KEY;
         const consumerSecret = process.env.MPESA_CUSTOMER_CONSUMER_SECRET;
         const QueueTimeOutURL = `${process.env.BASE_URL}/mpesa/queue`;
         const ResultURL = `${process.env.BASE_URL}/mpesa/ResultURL`;
-        const SecurityCredential = process.env.MPESA_SECURITY_CREDENTIALS;
+        const SecurityCredential = process.env.MPESA_SECURITY_CREDENTILAS as string;
         const PartyA = process.env.MPESA_PARTY_A;
+
+        // Generate OriginatorConversationID using UUID
+        const OriginatorConversationID = generateOriginatorConversationID();
 
         // Generate token for authorization
         const auth = Buffer.from(`${consumerKey}:${consumerSecret}`).toString('base64');
-        const date = moment()
-        const timestamp = date.format('YYYYMMDDhhmmss');
 
         const { data: { access_token: accessToken } } = await axios.get(
             'https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials',
@@ -158,16 +183,20 @@ mpesaRouter.post('/b2c', requireUser, authRole(ROLES.admin), async (req: Request
         const { data } = await axios.post(
             'https://sandbox.safaricom.co.ke/mpesa/b2c/v3/paymentrequest',
             {
+                OriginatorConversationID,
+                InitiatorName: "testapi",
                 SecurityCredential,
-                Timestamp: timestamp,
                 CommandID: "BusinessPayment",
-                Amount: amount,
+                Amount,
                 PartyA,
                 PartyB,
                 QueueTimeOutURL,
                 ResultURL,
                 Remarks: "Test remarks",
-                Occasion: "Test occasion"
+                Occasion: "Test occasion",
+                interestRate,
+                duration,
+                startDate,
             },
             {
                 headers: {
@@ -176,7 +205,8 @@ mpesaRouter.post('/b2c', requireUser, authRole(ROLES.admin), async (req: Request
             }
         );
         const userId = req.user?._id as string;
-        await createInvoice({ PartyB, user: userId, amount, mpesaResponse: data });
+        const mpesaResponse = data;
+        await createInvoice({ mpesaResponse, phoneNumber: PartyB, user: userId, amount: Amount });
         res.status(200).json(data);
 
         next();
