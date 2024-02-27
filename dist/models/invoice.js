@@ -36,7 +36,6 @@ const InvoiceSchema = new mongoose_1.Schema({
     },
     duration: {
         type: Number,
-        required: true,
     },
     mpesaResponse: {
         type: {

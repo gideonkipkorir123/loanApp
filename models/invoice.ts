@@ -30,7 +30,6 @@ const InvoiceSchema = new Schema({
     },
     duration: {
         type: Number,
-        required: true,
     },
     mpesaResponse: {
         type: {
