@@ -39,11 +39,11 @@ const updateInvoiceByMpesaIDsB2c = async (conversationId, OriginatorConversation
     }
 };
 exports.updateInvoiceByMpesaIDsB2c = updateInvoiceByMpesaIDsB2c;
-const updateInvoiceByMpesaIDsc2b = async (merchantRequestId, OriginatorConversationID, data) => {
+const updateInvoiceByMpesaIDsc2b = async (merchantRequestId, CheckoutRequestID, data) => {
     try {
         const updatedInvoice = await invoice_1.default.findOneAndUpdate({
             "mpesaResponse.MerchantRequestID": merchantRequestId,
-            "mpesaResponse.OriginatorConversationID": OriginatorConversationID,
+            "mpesaResponse.CheckoutRequestID": CheckoutRequestID,
         }, {
             $set: { status: data.status },
             mpesaResponseCallback: data.mpesaResponseCallback,

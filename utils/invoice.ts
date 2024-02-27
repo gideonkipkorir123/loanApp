@@ -49,14 +49,14 @@ export const updateInvoiceByMpesaIDsB2c = async (
 
 const updateInvoiceByMpesaIDsc2b = async (
     merchantRequestId: string,
-    OriginatorConversationID: string,
+    CheckoutRequestID: string,
     data: any
 ) => {
     try {
         const updatedInvoice = await Invoice.findOneAndUpdate(
             {
                 "mpesaResponse.MerchantRequestID": merchantRequestId,
-                "mpesaResponse.OriginatorConversationID": OriginatorConversationID,
+                "mpesaResponse.CheckoutRequestID": CheckoutRequestID,
             },
             {
                 $set: { status: data.status },
