@@ -37,7 +37,7 @@ const loanSchema = new mongoose_1.Schema({
     },
     interestRate: {
         type: Number,
-        required: true,
+        default: 10,
     },
     duration: {
         type: Number,
@@ -66,6 +66,9 @@ loanSchema.virtual("remainingTime").get(function () {
     }
     const remainingDays = Math.ceil(remainingMilliseconds / (1000 * 60 * 60 * 24));
     return `${remainingDays} days remaining`;
+});
+loanSchema.virtual("returnedAmount").get(function () {
+    return this.amount + this.amount * (this.interestRate / 100);
 });
 loanSchema.pre("save", function (next) {
     if (this.isModified("startDate") || this.isModified("duration")) {

@@ -121,9 +121,12 @@ mpesaRouter.post('/queue', async (req: Request, res: Response) => {
 mpesaRouter.post('/ResultURL', async (req: Request, res: Response) => {
     try {
         const body = req.body;
-        console.log(body, "body")
+
         const Result = body?.Body;
+        console.log(Result, "resultbody")
         const ResultType = Result?.ResultType;
+        const ReferenceData = Result?.ReferenceData
+        console.log({ ReferenceData }, "referencedata")
 
         if (ResultType === 0) {
             const OriginatorConversationID = Result?.OriginatorConversationID;
@@ -157,7 +160,7 @@ function generateOriginatorConversationID() {
 
 mpesaRouter.post('/b2c', requireUser, async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const { Amount, PartyB, interestRate, duration, startDate } = req.body;
+        const { Amount, PartyB, duration, startDate } = req.body;
 
         const consumerKey = process.env.MPESA_CUSTOMER_CONSUMER_KEY;
         const consumerSecret = process.env.MPESA_CUSTOMER_CONSUMER_SECRET;
@@ -195,7 +198,6 @@ mpesaRouter.post('/b2c', requireUser, async (req: Request, res: Response, next: 
                 ResultURL,
                 Remarks: "Test remarks",
                 Occasion: "Test occasion",
-                interestRate,
                 duration,
                 startDate,
             },

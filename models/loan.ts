@@ -9,6 +9,7 @@ export interface LoanInterface extends Document {
     startDate: Date;
     endDate?: Date;
     remainingTime: string;
+    returnedAmount: number;
 }
 
 const loanSchema: Schema = new Schema(
@@ -21,11 +22,11 @@ const loanSchema: Schema = new Schema(
         amount: {
             type: Number,
             required: true,
-            min: 1000, 
+            min: 1000,
         },
         interestRate: {
             type: Number,
-            required: true,
+            default: 10,
         },
         duration: {
             type: Number,
@@ -58,6 +59,11 @@ loanSchema.virtual("remainingTime").get(function (this: LoanInterface) {
 
     const remainingDays = Math.ceil(remainingMilliseconds / (1000 * 60 * 60 * 24));
     return `${remainingDays} days remaining`;
+});
+
+
+loanSchema.virtual("returnedAmount").get(function (this: LoanInterface) {
+    return this.amount + this.amount * (this.interestRate / 100);
 });
 
 loanSchema.pre("save", function (this: LoanInterface & Document, next) {

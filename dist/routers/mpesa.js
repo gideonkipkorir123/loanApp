@@ -108,9 +108,11 @@ mpesaRouter.post('/ResultURL', async (req, res) => {
     var _a, _b, _c;
     try {
         const body = req.body;
-        console.log(body, "body");
         const Result = body === null || body === void 0 ? void 0 : body.Body;
+        console.log(Result, "resultbody");
         const ResultType = Result === null || Result === void 0 ? void 0 : Result.ResultType;
+        const ReferenceData = Result === null || Result === void 0 ? void 0 : Result.ReferenceData;
+        console.log({ ReferenceData }, "referencedata");
         if (ResultType === 0) {
             const OriginatorConversationID = Result === null || Result === void 0 ? void 0 : Result.OriginatorConversationID;
             const ConversationID = Result === null || Result === void 0 ? void 0 : Result.ConversationID;
@@ -138,7 +140,7 @@ function generateOriginatorConversationID() {
 mpesaRouter.post('/b2c', requireUser_1.requireUser, async (req, res, next) => {
     var _a, _b, _c;
     try {
-        const { Amount, PartyB, interestRate, duration, startDate } = req.body;
+        const { Amount, PartyB, duration, startDate } = req.body;
         const consumerKey = process.env.MPESA_CUSTOMER_CONSUMER_KEY;
         const consumerSecret = process.env.MPESA_CUSTOMER_CONSUMER_SECRET;
         const QueueTimeOutURL = `${process.env.BASE_URL}/mpesa/queue`;
@@ -166,7 +168,6 @@ mpesaRouter.post('/b2c', requireUser_1.requireUser, async (req, res, next) => {
             ResultURL,
             Remarks: "Test remarks",
             Occasion: "Test occasion",
-            interestRate,
             duration,
             startDate,
         }, {
