@@ -119,6 +119,10 @@ mpesaRouter.post("/ResultURL", async (req, res) => {
         console.log(body, "body");
         const Result = body === null || body === void 0 ? void 0 : body.Body;
         const ResultType = Result === null || Result === void 0 ? void 0 : Result.ResultType;
+        const ResultParameters = Result === null || Result === void 0 ? void 0 : Result.ResultParameters;
+        const TransactionID = Result === null || Result === void 0 ? void 0 : Result.TransactionID;
+        console.log("TransactionID", TransactionID);
+        console.log(ResultParameters, "ResultParameters");
         const ReferenceData = Result === null || Result === void 0 ? void 0 : Result.ReferenceData;
         console.log(ReferenceData, "referencedata");
         if (ResultType === 0) {

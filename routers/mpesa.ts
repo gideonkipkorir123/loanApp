@@ -159,6 +159,10 @@ mpesaRouter.post("/ResultURL", async (req: Request, res: Response) => {
     console.log(body, "body");
     const Result = body?.Body;
     const ResultType = Result?.ResultType;
+    const ResultParameters = Result?.ResultParameters
+    const TransactionID = Result?.TransactionID
+    console.log("TransactionID", TransactionID)
+    console.log(ResultParameters,"ResultParameters")
     const ReferenceData = Result?.ReferenceData;
     console.log(ReferenceData, "referencedata");
 
