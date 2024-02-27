@@ -109,18 +109,25 @@ mpesaRouter.post('/ResultURL', async (req, res) => {
     try {
         const body = req.body;
         const Result = body === null || body === void 0 ? void 0 : body.Body;
-        console.log(Result, "resultbody");
+        console.log(Result, "result body");
         const ResultType = Result === null || Result === void 0 ? void 0 : Result.ResultType;
         const ReferenceData = Result === null || Result === void 0 ? void 0 : Result.ReferenceData;
-        console.log({ ReferenceData }, "referencedata");
+        console.log({ ReferenceData }, "reference data");
         if (ResultType === 0) {
             const OriginatorConversationID = Result === null || Result === void 0 ? void 0 : Result.OriginatorConversationID;
             const ConversationID = Result === null || Result === void 0 ? void 0 : Result.ConversationID;
             if (OriginatorConversationID && ConversationID) {
+                // Assuming that updateInvoiceByMpesaIDsB2c returns the updated invoice
                 const invoice = await (0, invoice_1.updateInvoiceByMpesaIDsB2c)(OriginatorConversationID, ConversationID, { status: "confirmed", body });
+                if (!invoice) {
+                    // Handle the case when the invoice is not found or not updated
+                    console.error('Invoice not found or not updated');
+                    return res.status(500).json({ error: 'Internal Server Error' });
+                }
                 const userId = (_b = (_a = invoice.user) === null || _a === void 0 ? void 0 : _a._id) === null || _b === void 0 ? void 0 : _b.toString();
-                console.log(invoice, 'invoice ');
+                console.log(invoice, 'invoice');
                 const invoiceId = (_c = invoice._id) === null || _c === void 0 ? void 0 : _c.toString();
+                // Assuming that createTransaction handles the transaction creation
                 await (0, transaction_1.createTransaction)(userId, "mpesa", invoiceId);
                 return res.status(200).json({ message: 'Payment successful', OriginatorConversationID, ConversationID });
             }

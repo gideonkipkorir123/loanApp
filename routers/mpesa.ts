@@ -123,21 +123,31 @@ mpesaRouter.post('/ResultURL', async (req: Request, res: Response) => {
         const body = req.body;
 
         const Result = body?.Body;
-        console.log(Result, "resultbody")
+        console.log(Result, "result body");
+
         const ResultType = Result?.ResultType;
-        const ReferenceData = Result?.ReferenceData
-        console.log({ ReferenceData }, "referencedata")
+        const ReferenceData = Result?.ReferenceData;
+        console.log({ ReferenceData }, "reference data");
 
         if (ResultType === 0) {
             const OriginatorConversationID = Result?.OriginatorConversationID;
             const ConversationID = Result?.ConversationID;
 
-
             if (OriginatorConversationID && ConversationID) {
+                // Assuming that updateInvoiceByMpesaIDsB2c returns the updated invoice
                 const invoice = await updateInvoiceByMpesaIDsB2c(OriginatorConversationID, ConversationID, { status: "confirmed", body });
+
+                if (!invoice) {
+                    // Handle the case when the invoice is not found or not updated
+                    console.error('Invoice not found or not updated');
+                    return res.status(500).json({ error: 'Internal Server Error' });
+                }
+
                 const userId: string = (invoice.user as any)?._id?.toString();
-                console.log(invoice, 'invoice ');
+                console.log(invoice, 'invoice');
                 const invoiceId: string = invoice._id?.toString();
+
+                // Assuming that createTransaction handles the transaction creation
                 await createTransaction(userId, "mpesa", invoiceId);
 
                 return res.status(200).json({ message: 'Payment successful', OriginatorConversationID, ConversationID });
