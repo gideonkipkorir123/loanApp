@@ -162,7 +162,7 @@ mpesaRouter.post("/ResultURL", async (req: Request, res: Response) => {
     const ResultParameters = Result?.ResultParameters
     const TransactionID = Result?.TransactionID
     console.log("TransactionID", TransactionID)
-    console.log(ResultParameters,"ResultParameters")
+    console.log(ResultParameters, "ResultParameters")
     const ReferenceData = Result?.ReferenceData;
     console.log(ReferenceData, "referencedata");
 
@@ -266,6 +266,7 @@ mpesaRouter.post(
         phoneNumber: PartyB,
         user: userId,
         amount: Amount,
+        duration
       });
       res.status(200).json(data);
 

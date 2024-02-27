@@ -193,6 +193,7 @@ mpesaRouter.post("/b2c", requireUser_1.requireUser, async (req, res, next) => {
             phoneNumber: PartyB,
             user: userId,
             amount: Amount,
+            duration
         });
         res.status(200).json(data);
         next();
